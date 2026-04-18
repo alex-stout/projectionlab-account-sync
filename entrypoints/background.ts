@@ -9,7 +9,7 @@ export default defineBackground(() => {
     }
 
     if (msg.type === "SYNC_TO_PL") {
-    window.projectionlabPluginAPI.updateAccount(...)
-  }
+      // sync values to Projection Lab
+    }
   });
 });
