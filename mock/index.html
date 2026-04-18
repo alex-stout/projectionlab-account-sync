@@ -1,0 +1,226 @@
+<!-- mock/index.html -->
+<!doctype html>
+<html>
+  <body>
+    <h1>Mock Vanguard</h1>
+
+    <div class="individual-account-container">
+      <div class="account-row account-name c11n-text-sm">
+        <c11n-web-v1-link c11n-web-link="" variant="secondary" reinforced=""
+          ><a class="account-holdings-link" href=""
+            >Brokerage Account</a
+          ></c11n-web-v1-link
+        >
+      </div>
+      <div class="account-row">
+        <div class="account-value-label">Balance</div>
+        <gyd-value-change
+          class="balance c11n-text-md hydrated"
+          hide-icon="true"
+          font-size="md"
+          font-weight="bold"
+          ><span>$10000</span></gyd-value-change
+        >
+      </div>
+      <gyd-conditional-loader class="hydrated"
+        ><template></template
+      ></gyd-conditional-loader>
+      <div class="account-row rate-of-return">
+        <div class="account-value-label">Rate of return††</div>
+        <div class="account-value">
+          <gyd-value-change
+            hide-icon="true"
+            font-size="sm"
+            font-weight="normal"
+            class="hydrated"
+            ><span>10.0%</span></gyd-value-change
+          >
+        </div>
+      </div>
+      <div class="account-row transact-transition-row">
+        <div class="partial-account-row-column"></div>
+        <div class="transact-menu">
+          <gyd-account-transact-menu
+            class="hydrated"
+          ></gyd-account-transact-menu>
+        </div>
+      </div>
+    </div>
+    <div class="individual-account-container">
+      <div class="account-row account-name c11n-text-sm">
+        <c11n-web-v1-link c11n-web-link="" variant="secondary" reinforced=""
+          ><a class="account-holdings-link" href=""
+            >Savings Account</a
+          ></c11n-web-v1-link
+        >
+      </div>
+      <div class="account-row">
+        <div class="account-value-label">Balance</div>
+        <gyd-value-change
+          class="balance c11n-text-md hydrated"
+          hide-icon="true"
+          font-size="md"
+          font-weight="bold"
+          ><span>$1,000</span></gyd-value-change
+        >
+      </div>
+      <div class="account-row total-credits-and-debits">
+        <div class="account-value-label">Total credits and debits</div>
+        <div class="account-value"><span>$0.00</span></div>
+      </div>
+      <div class="account-row funds-available-to-withdraw">
+        <div class="account-value-label">
+          <span>Funds available to withdraw<sup>||</sup></span>
+        </div>
+        <div class="account-value"><span>$1,000.00</span></div>
+      </div>
+      <div class="account-row product-type-links c11n-text-sm">
+        <hc-tagged-link
+          cta-name="my cash plus overview"
+          event-location="dashboard_selfmanagedaccounts"
+          class="hydrated"
+          ><!----><c11n-web-v1-link
+            data-cy="moreAboutCashPlusLink"
+            c11n-web-link=""
+            ><a href="https://cma.web.vanguard.com/"
+              >View my Cash Plus overview</a
+            ></c11n-web-v1-link
+          ></hc-tagged-link
+        >
+      </div>
+      <div class="account-row">
+        <div class="transact-menu">
+          <gyd-account-transact-menu
+            class="hydrated"
+          ></gyd-account-transact-menu>
+        </div>
+      </div>
+    </div>
+    <div class="individual-account-container">
+      <div class="account-row account-name c11n-text-sm">
+        <c11n-web-v1-link c11n-web-link="" variant="secondary" reinforced=""
+          ><a class="account-holdings-link" href=""
+            >Traditional IRA Brokerage Account</a
+          ></c11n-web-v1-link
+        >
+      </div>
+      <div class="account-row">
+        <div class="account-value-label">Balance</div>
+        <gyd-value-change
+          class="balance c11n-text-md hydrated"
+          hide-icon="true"
+          font-size="md"
+          font-weight="bold"
+          ><span>$1,000.00</span></gyd-value-change
+        >
+      </div>
+      <gyd-conditional-loader lazy="" class="hydrated"
+        ><template
+          ><gyd-investment-returns
+            account-id="1234"
+            label-text="Investment returns"
+            disclaimer-symbol="‡"
+          ></gyd-investment-returns></template
+      ></gyd-conditional-loader>
+      <div class="account-row rate-of-return">
+        <div class="account-value-label">Rate of return††</div>
+        <div class="account-value">
+          <gyd-value-change
+            hide-icon="true"
+            font-size="sm"
+            font-weight="normal"
+            class="hydrated"
+            ><span>2.5%</span></gyd-value-change
+          >
+        </div>
+      </div>
+      <div class="account-row">
+        <div class="retirement-link c11n-text-sm">
+          <hc-tagged-link
+            cta-name="retirement summary"
+            event-location="dashboard_selfmanagedaccounts"
+            class="hydrated"
+            ><!----><c11n-web-v1-link c11n-web-link=""
+              ><a
+                data-cy="retirement-summary-link"
+                href="https://retirement-summary.web.vanguard.com"
+                >View my retirement summary</a
+              ></c11n-web-v1-link
+            ></hc-tagged-link
+          >
+        </div>
+      </div>
+      <div class="account-row transact-transition-row">
+        <div class="partial-account-row-column"></div>
+        <div class="transact-menu">
+          <gyd-account-transact-menu
+            class="hydrated"
+          ></gyd-account-transact-menu>
+        </div>
+      </div>
+    </div>
+    <div class="individual-account-container">
+      <div class="account-row account-name c11n-text-sm">
+        <c11n-web-v1-link c11n-web-link="" variant="secondary" reinforced=""
+          ><a class="account-holdings-link" href=""
+            >Roth IRA Brokerage Account</a
+          ></c11n-web-v1-link
+        >
+      </div>
+      <div class="account-row">
+        <div class="account-value-label">Balance</div>
+        <gyd-value-change
+          class="balance c11n-text-md hydrated"
+          hide-icon="true"
+          font-size="md"
+          font-weight="bold"
+          ><span>$1,000.01</span></gyd-value-change
+        >
+      </div>
+      <gyd-conditional-loader lazy="" class="hydrated"
+        ><template
+          ><gyd-investment-returns
+            account-id="12345"
+            label-text="Investment returns"
+            disclaimer-symbol="‡"
+          ></gyd-investment-returns></template
+      ></gyd-conditional-loader>
+      <div class="account-row rate-of-return">
+        <div class="account-value-label">Rate of return††</div>
+        <div class="account-value">
+          <gyd-value-change
+            hide-icon="true"
+            font-size="sm"
+            font-weight="normal"
+            class="hydrated"
+            ><span>5.0%</span></gyd-value-change
+          >
+        </div>
+      </div>
+      <div class="account-row">
+        <div class="retirement-link c11n-text-sm">
+          <hc-tagged-link
+            cta-name="retirement summary"
+            event-location="dashboard_selfmanagedaccounts"
+            class="hydrated"
+            ><!----><c11n-web-v1-link c11n-web-link=""
+              ><a
+                data-cy="retirement-summary-link"
+                href="https://retirement-summary.web.vanguard.com"
+                >View my retirement summary</a
+              ></c11n-web-v1-link
+            ></hc-tagged-link
+          >
+        </div>
+      </div>
+      <div class="account-row transact-transition-row">
+        <div class="partial-account-row-column"></div>
+        <div class="transact-menu">
+          <gyd-account-transact-menu
+            class="hydrated"
+          ></gyd-account-transact-menu>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
