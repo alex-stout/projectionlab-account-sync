@@ -2,6 +2,8 @@
 
 A Chrome/Firefox browser extension that syncs account balances from financial institutions into [ProjectionLab](https://projectionlab.com).
 
+![Code Coverage](https://img.shields.io/badge/coverage-97%25-brightgreen?style=flat)
+
 > **Community project** — This extension is not affiliated with, endorsed by, or maintained by ProjectionLab. It is an independent community tool that uses ProjectionLab's plugin API.
 
 ## Supported sources

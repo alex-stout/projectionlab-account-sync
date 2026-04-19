@@ -14,7 +14,7 @@ export default defineConfig({
       provider: "v8",
       include: ["entrypoints/**/*.{ts,tsx}", "plugins/**/*.{ts,tsx}"],
       exclude: ["**/*.test.{ts,tsx}", "**/*.content.ts", "entrypoints/popup/index.tsx"],
-      reporter: ["text", "html"],
+      reporter: ["text", "html", "cobertura"],
     },
   },
   resolve: {
