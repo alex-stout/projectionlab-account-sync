@@ -1,4 +1,4 @@
-import icon from "./icon.png";
+import icon from "./icon.svg";
 import type { SourcePlugin } from "../index";
 
 const plugin: SourcePlugin = {
