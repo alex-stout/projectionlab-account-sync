@@ -8,6 +8,7 @@ import {
   lastSyncedKey,
   lastRefreshedKey,
   credsKey,
+  disabledPluginsKey,
   type ApiPlugin,
 } from "~/plugins";
 import type { PlAccount } from "~/types";
@@ -22,6 +23,8 @@ type Props = {
   plError: string | null;
   plLastRefreshed: number | null;
   onRefreshPL: () => void;
+  disabledPlugins: string[];
+  onTogglePlugin: (pluginId: string, enabled: boolean) => void;
 };
 
 const API_PLUGINS = PLUGINS.filter(
@@ -37,6 +40,8 @@ export default function SettingsPanel({
   plError,
   plLastRefreshed,
   onRefreshPL,
+  disabledPlugins,
+  onTogglePlugin,
 }: Props) {
   const [key, setKey] = useState("");
   const [saved, setSaved] = useState(false);
@@ -68,6 +73,7 @@ export default function SettingsPanel({
       "plAccounts",
       plApiKey,
       plLastRefreshedKey,
+      disabledPluginsKey,
       ...PLUGINS.flatMap((p) => [
         accountsKey(p.id),
         mappingsKey(p.id),
@@ -151,7 +157,44 @@ export default function SettingsPanel({
         )}
       </div>
 
-      {API_PLUGINS.map((p) => (
+      <div className="border-t border-gray-100 pt-5 mb-6">
+        <p className="text-xs font-medium text-gray-600 mb-1">Plugins</p>
+        <p className="text-[11px] text-gray-400 mb-3">
+          Turn plugins on or off. Disabled plugins are hidden from the sidebar;
+          your data is preserved.
+        </p>
+        <ul className="flex flex-col gap-2">
+          {PLUGINS.map((p) => {
+            const enabled = !disabledPlugins.includes(p.id);
+            return (
+              <li
+                key={p.id}
+                className="flex items-center gap-3 py-1.5"
+              >
+                <img
+                  src={p.icon}
+                  alt=""
+                  className="w-5 h-5 object-contain shrink-0"
+                />
+                <span className="flex-1 text-xs text-gray-700">{p.name}</span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={enabled}
+                    onChange={(e) => onTogglePlugin(p.id, e.target.checked)}
+                    aria-label={`Enable ${p.name}`}
+                  />
+                  <span className="w-8 h-4 bg-gray-200 rounded-full peer-checked:bg-indigo-600 transition-colors" />
+                  <span className="absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4" />
+                </label>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+
+      {API_PLUGINS.filter((p) => !disabledPlugins.includes(p.id)).map((p) => (
         <ApiPluginCreds
           key={`${p.id}-${resetNonce}`}
           plugin={p}
