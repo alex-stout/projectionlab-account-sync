@@ -13,6 +13,10 @@ export default defineConfig({
       gecko: {
         id: "projectionlab-account-sync@extension",
         strict_min_version: "109.0",
+        data_collection_permissions: {
+          required: ["none"],
+          optional: [],
+        },
       },
     },
     web_accessible_resources: [

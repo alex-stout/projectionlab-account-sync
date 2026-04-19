@@ -28,6 +28,8 @@ This extension is designed for personal use only — syncing your own accounts f
 
 Account balances are read directly from your browser and sent only to the ProjectionLab API using your own API key. No data is stored remotely or transmitted anywhere else. The API key itself is stored in `localstorage` — local to your browser, never synced or shared.
 
+See [PRIVACY.md](PRIVACY.md) for the full privacy policy.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, testing, and how to add support for a new financial institution.
