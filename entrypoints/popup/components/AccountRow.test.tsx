@@ -6,7 +6,6 @@ import type { Account, PlAccount } from "~/types";
 const account: Account = {
   name: "IRA",
   balance: 12500,
-  rateOfReturn: null,
   accountId: null,
 };
 const plAccounts: PlAccount[] = [
@@ -127,7 +126,6 @@ describe("AccountRow", () => {
         account={{
           name: "Mortgage",
           balance: -250_000,
-          rateOfReturn: null,
           accountId: null,
         }}
         mapped=""
@@ -147,7 +145,6 @@ describe("AccountRow", () => {
         account={{
           name: longName,
           balance: 1000,
-          rateOfReturn: null,
           accountId: null,
         }}
         mapped=""

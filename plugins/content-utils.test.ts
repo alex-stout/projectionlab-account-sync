@@ -56,7 +56,7 @@ describe("createMain", () => {
   });
 
   it("calls sendResponse with { ok, payload } on SYNC_REQUEST", async () => {
-    const payload = [{ name: "Account", balance: 100, rateOfReturn: null, accountId: null }];
+    const payload = [{ name: "Account", balance: 100, accountId: null }];
     const extract = vi.fn().mockReturnValue(payload);
     const main = createMain("test-plugin", extract);
     main();
@@ -98,7 +98,7 @@ describe("createMain", () => {
   });
 
   it("works with an async extract function", async () => {
-    const payload = [{ name: "Async Account", balance: 500, rateOfReturn: null, accountId: null }];
+    const payload = [{ name: "Async Account", balance: 500, accountId: null }];
     const extract = vi.fn().mockResolvedValue(payload);
     const main = createMain("test-plugin", extract);
     main();

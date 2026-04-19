@@ -1,7 +1,6 @@
 export type Account = {
   name: string;
   balance: number;
-  rateOfReturn: number | null;
   accountId: string | null;
 };
 

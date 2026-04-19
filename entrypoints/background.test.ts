@@ -72,7 +72,7 @@ describe("SYNC_SOURCE", () => {
   });
 
   it("sends SYNC_REQUEST and returns accounts from tab response", async () => {
-    const payload = [{ name: "IRA", balance: 5000, rateOfReturn: null, accountId: null }];
+    const payload = [{ name: "IRA", balance: 5000, accountId: null }];
     vi.mocked(browser.tabs.query).mockResolvedValueOnce([mockTab] as any);
     vi.mocked(browser.tabs.sendMessage as any).mockResolvedValue({ ok: true, payload });
     const result = await call({ type: "SYNC_SOURCE", sourceId: "vanguard" });
@@ -82,7 +82,7 @@ describe("SYNC_SOURCE", () => {
   });
 
   it("writes accounts and lastRefreshed to storage on success", async () => {
-    const payload = [{ name: "IRA", balance: 5000, rateOfReturn: null, accountId: null }];
+    const payload = [{ name: "IRA", balance: 5000, accountId: null }];
     vi.mocked(browser.tabs.query).mockResolvedValueOnce([mockTab] as any);
     vi.mocked(browser.tabs.sendMessage as any).mockResolvedValue({ ok: true, payload });
     await call({ type: "SYNC_SOURCE", sourceId: "vanguard" });
@@ -156,7 +156,7 @@ describe("SYNC_SOURCE (api plugin)", () => {
     );
     expect(result.ok).toBe(true);
     expect(result.accounts).toEqual([
-      { name: "Checking", balance: 1234, rateOfReturn: null, accountId: "a-1" },
+      { name: "Checking", balance: 1234, accountId: "a-1" },
     ]);
     expect(browser.storage.local.set).toHaveBeenCalledWith(
       expect.objectContaining({

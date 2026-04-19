@@ -206,7 +206,6 @@ export async function refresh(
   return data.accounts.map((a: any) => ({
     name: a.name,
     balance: a.balance,
-    rateOfReturn: null,
     accountId: a.id,
   }));
 }

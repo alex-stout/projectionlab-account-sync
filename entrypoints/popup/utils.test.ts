@@ -5,7 +5,6 @@ import type { Account } from "~/types";
 const base: Account = {
   name: "Vanguard 401k",
   balance: 100000,
-  rateOfReturn: null,
   accountId: null,
 };
 

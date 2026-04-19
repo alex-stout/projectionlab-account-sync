@@ -47,8 +47,8 @@ describe("YNAB refresh", () => {
       }),
     );
     expect(accounts).toEqual([
-      { name: "Checking", balance: 1234, rateOfReturn: null, accountId: "a-1" },
-      { name: "Savings", balance: 10_000, rateOfReturn: null, accountId: "a-2" },
+      { name: "Checking", balance: 1234, accountId: "a-1" },
+      { name: "Savings", balance: 10_000, accountId: "a-2" },
     ]);
   });
 

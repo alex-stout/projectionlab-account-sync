@@ -13,8 +13,8 @@ const plugin: SourcePlugin = {
 };
 
 const accounts: Account[] = [
-  { name: "IRA", balance: 5000, rateOfReturn: null, accountId: null },
-  { name: "401k", balance: 20000, rateOfReturn: null, accountId: "acc-2" },
+  { name: "IRA", balance: 5000, accountId: null },
+  { name: "401k", balance: 20000, accountId: "acc-2" },
 ];
 
 describe("AccountList", () => {
