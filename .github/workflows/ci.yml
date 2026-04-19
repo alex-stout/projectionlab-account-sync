@@ -7,8 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  unit:
-    name: Unit tests & type check
+  compile:
+    name: Type check
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -20,6 +20,20 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run compile
+
+  unit:
+    name: Unit tests
+    needs: compile
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
       - run: npm run test:coverage -- --run
       - name: Coverage summary
         uses: irongut/CodeCoverageSummary@v1.3.0
@@ -31,6 +45,7 @@ jobs:
 
   e2e:
     name: E2E tests
+    needs: unit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
