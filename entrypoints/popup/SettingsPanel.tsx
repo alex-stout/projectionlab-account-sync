@@ -34,6 +34,7 @@ export default function SettingsPanel({ onKeyChange, onDataCleared }: Props) {
   const handleClearData = async () => {
     const keys = [
       "plAccounts",
+      plApiKey,
       ...PLUGINS.flatMap((p) => [
         accountsKey(p.id),
         mappingsKey(p.id),
@@ -42,6 +43,8 @@ export default function SettingsPanel({ onKeyChange, onDataCleared }: Props) {
       ]),
     ];
     await browser.storage.local.remove(keys);
+    setKey("");
+    onKeyChange(false);
     setCleared(true);
     setTimeout(() => setCleared(false), 2000);
     onDataCleared?.();

@@ -115,6 +115,51 @@ test("amber dot on gear button when no API key is configured", async ({
   await expect(gearBtn.locator(".bg-amber-400")).toBeVisible();
 });
 
+test("Clear All Data removes the API key and all plugin data", async ({ page, context }) => {
+  let sw = context.serviceWorkers()[0];
+  if (!sw) sw = await context.waitForEvent("serviceworker");
+
+  // Seed an API key and fake Vanguard accounts directly in storage
+  await sw.evaluate(() =>
+    (globalThis as any).chrome.storage.local.set({
+      plApiKey: "test-api-key",
+      accounts_vanguard: [{ name: "Roth IRA", balance: 1200 }],
+      mappings_vanguard: { "Roth IRA": "pl-roth-ira" },
+    }),
+  );
+
+  // Reload popup so it picks up the seeded data
+  await page.reload();
+  await expect(page.getByText("Roth IRA")).toBeVisible();
+
+  // Open settings and clear all data
+  await page.getByTitle("Settings").click();
+  await expect(page.getByPlaceholder(/paste your api key/i)).toHaveValue("test-api-key");
+  await page.getByRole("button", { name: "Clear All Data" }).click();
+  await expect(page.getByRole("button", { name: "✓ Cleared" })).toBeVisible();
+
+  // API key input is empty and amber dot is back
+  await expect(page.getByPlaceholder(/paste your api key/i)).toHaveValue("");
+  await expect(page.getByTitle("Settings").locator(".bg-amber-400")).toBeVisible();
+
+  // Storage is actually empty for both key and plugin data
+  const stored = await sw.evaluate(() =>
+    (globalThis as any).chrome.storage.local.get([
+      "plApiKey",
+      "accounts_vanguard",
+      "mappings_vanguard",
+    ]),
+  );
+  expect(stored.plApiKey).toBeUndefined();
+  expect(stored.accounts_vanguard).toBeUndefined();
+  expect(stored.mappings_vanguard).toBeUndefined();
+
+  // Plugin tab shows empty state
+  await page.getByTitle("Settings").click(); // navigate back to plugin view
+  await page.getByTitle("Vanguard").click();
+  await expect(page.getByRole("button", { name: /↻ Vanguard/ })).toBeVisible();
+});
+
 test("saving an API key shows Saved feedback", async ({ page }) => {
   await page.getByTitle("Settings").click();
   await page.getByPlaceholder(/paste your api key/i).fill("test-api-key");

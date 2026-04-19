@@ -123,6 +123,7 @@ describe("SettingsPanel", () => {
     expect((browser.storage.local as any).remove).toHaveBeenCalledWith(
       expect.arrayContaining([
         "plAccounts",
+        "plApiKey",
         "accounts_vanguard",
         "mappings_vanguard",
         "lastSynced_vanguard",

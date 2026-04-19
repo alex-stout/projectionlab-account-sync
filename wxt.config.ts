@@ -25,7 +25,6 @@ export default defineConfig({
       },
     ],
     host_permissions: [
-      "https://api.youneedabudget.com/*",
       "https://app.projectionlab.com/*",
       "https://ea.projectionlab.com/*",
       "https://dashboard.web.vanguard.com/*",
