@@ -25,7 +25,7 @@ export default function Sidebar({
   return (
     <div className="flex flex-col w-18 bg-slate-900 shrink-0">
       <div className="h-11.5 flex items-center justify-center border-b border-slate-700">
-        <span className="text-white text-xs font-bold tracking-tight">PL</span>
+        <span className="text-white text-xs font-bold tracking-tight">PL Sync</span>
       </div>
 
       <div className="flex flex-col gap-1 p-2 flex-1">

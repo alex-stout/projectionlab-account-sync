@@ -84,7 +84,7 @@ describe("Sidebar", () => {
 
   it("shows the PL header label", () => {
     render(<Sidebar {...defaultProps} />);
-    expect(screen.getByText("PL")).toBeInTheDocument();
+    expect(screen.getByText("PL Sync")).toBeInTheDocument();
   });
 
   it("renders the Settings gear button", () => {

@@ -14,7 +14,7 @@ beforeEach(() => {
 describe("App", () => {
   it("renders the sidebar and ProjectionLab label on mount", async () => {
     render(<App />);
-    await waitFor(() => expect(screen.getByText("PL")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("PL Sync")).toBeInTheDocument());
     expect(screen.getByText("ProjectionLab")).toBeInTheDocument();
   });
 
