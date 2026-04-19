@@ -17,8 +17,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
+      - uses: actions/cache@v4
+        id: cache
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('package-lock.json') }}
       - run: npm ci
+        if: steps.cache.outputs.cache-hit != 'true'
       - run: npm run compile
 
   unit:
@@ -32,8 +37,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-      - run: npm ci
+      - uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('package-lock.json') }}
       - run: npm run test:coverage -- --run
       - name: Coverage summary
         uses: irongut/CodeCoverageSummary@v1.3.0
@@ -52,8 +59,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-      - run: npm ci
+      - uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('package-lock.json') }}
       - run: npx playwright install chromium --with-deps
       - run: xvfb-run --auto-servernum npm run e2e:ci
       - uses: actions/upload-artifact@v4
