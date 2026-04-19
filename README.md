@@ -20,49 +20,14 @@ A Chrome/Firefox browser extension that syncs account balances from financial in
 
 A ProjectionLab API key is required. Add it in the extension's **Settings** panel.
 
-## Development
+## Intended use
 
-```sh
-npm install
+This extension is designed for personal use only — syncing your own accounts for your own financial planning. It is intended to be used infrequently (e.g. monthly when reviewing your plan), not on an automated or scheduled basis. Users are responsible for ensuring their own use.
 
-# Chrome
-npm run dev
+## Privacy
 
-# Firefox
-npm run dev:firefox
-```
+Account balances are read directly from your browser and sent only to the ProjectionLab API using your own API key. No data is stored remotely or transmitted anywhere else. The API key itself is stored in `localstorage` — local to your browser, never synced or shared.
 
-## Building
+## Contributing
 
-```sh
-# Chrome
-npm run build
-
-# Firefox
-npm run build:firefox
-
-# Chrome with E2E test URLs enabled
-npm run build:e2e
-```
-
-## Testing
-
-```sh
-# Unit tests
-npm test
-
-# Unit tests with coverage
-npm run test:coverage
-
-# E2E tests (Playwright + Chromium)
-npm run e2e
-```
-
-## Adding a plugin
-
-1. Create a directory under `plugins/<name>/` with:
-   - `index.ts` — plugin metadata (`id`, `name`, `icon`, `urlPatterns`)
-   - `content.ts` — DOM scraper using `createMain` from `../content-utils`
-   - `mock-site/index.html` — mock page for e2e testing
-2. Register the plugin in `plugins/index.ts`
-3. Import and register the content handler in `entrypoints/plugin.content.ts`
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, testing, and how to add support for a new financial institution.
