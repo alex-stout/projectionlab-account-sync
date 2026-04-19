@@ -7,6 +7,7 @@ const PL_URL = "http://localhost:3000/projectionlab/";
 test.beforeEach(async ({ context }) => {
   let sw = context.serviceWorkers()[0];
   if (!sw) sw = await context.waitForEvent("serviceworker");
+  await sw.evaluate(() => (globalThis as any).chrome.storage.local.clear());
   await sw.evaluate(() =>
     (globalThis as any).chrome.storage.local.set({ plApiKey: "test-key" }),
   );
@@ -120,4 +121,140 @@ test("full sync: Alight → ProjectionLab", async ({ context, popupBaseUrl }) =>
   // Step 5: verify results
   await expect(popup.getByText(/✓.*401\(k\)/)).toBeVisible({ timeout: 10_000 });
   await expect(popup.getByText(/✓.*HSA/)).toBeVisible();
+});
+
+test("Vanguard shows availability dot when its tab is open", async ({
+  context,
+  popupBaseUrl,
+}) => {
+  await context.newPage().then((p) => p.goto(VANGUARD_URL));
+  const popup = await context.newPage();
+  await popup.goto(`${popupBaseUrl}/popup.html`);
+
+  // Vanguard is the default active plugin → indigo-200 dot
+  await expect(
+    popup.getByTitle("Vanguard").locator(".bg-indigo-200"),
+  ).toBeVisible();
+
+  // Switch to Alight, Vanguard becomes inactive → green-400 dot
+  await popup.getByTitle("Alight").click();
+  await expect(
+    popup.getByTitle("Vanguard").locator(".bg-green-400"),
+  ).toBeVisible();
+});
+
+test("sidebar shows 'just now' timestamp after a successful sync", async ({
+  context,
+  popupBaseUrl,
+}) => {
+  await context.newPage().then((p) => p.goto(VANGUARD_URL));
+  const popup = await context.newPage();
+  await popup.goto(`${popupBaseUrl}/popup.html`);
+
+  await popup.getByRole("button", { name: /↻ Vanguard/ }).click();
+  await expect(popup.getByText("Roth IRA")).toBeVisible({ timeout: 10_000 });
+
+  await context.newPage().then((p) => p.goto(PL_URL));
+  await popup.getByRole("button", { name: "↻ ProjectionLab" }).click();
+  const selects = popup.locator("select");
+  await expect(selects.first()).toBeEnabled({ timeout: 10_000 });
+  await selects.nth(0).selectOption("pl-roth-ira");
+
+  await popup.getByRole("button", { name: "Sync to ProjectionLab" }).click();
+  await expect(popup.getByText(/✓.*Roth IRA/)).toBeVisible({ timeout: 10_000 });
+
+  await expect(
+    popup.getByTitle("Vanguard").getByText("just now"),
+  ).toBeVisible();
+});
+
+test("mappings persist across popup reopen", async ({
+  context,
+  popupBaseUrl,
+}) => {
+  await context.newPage().then((p) => p.goto(VANGUARD_URL));
+  let popup = await context.newPage();
+  await popup.goto(`${popupBaseUrl}/popup.html`);
+
+  await popup.getByRole("button", { name: /↻ Vanguard/ }).click();
+  await expect(popup.getByText("Roth IRA")).toBeVisible({ timeout: 10_000 });
+
+  await context.newPage().then((p) => p.goto(PL_URL));
+  await popup.getByRole("button", { name: "↻ ProjectionLab" }).click();
+  await expect(popup.locator("select").first()).toBeEnabled({
+    timeout: 10_000,
+  });
+  await popup.locator("select").nth(0).selectOption("pl-roth-ira");
+
+  // Close popup and reopen — mappings/accounts should rehydrate from storage
+  await popup.close();
+  popup = await context.newPage();
+  await popup.goto(`${popupBaseUrl}/popup.html`);
+
+  await expect(popup.locator("select").first()).toHaveValue("pl-roth-ira", {
+    timeout: 10_000,
+  });
+});
+
+test("switching plugins preserves previously refreshed source data", async ({
+  context,
+  popupBaseUrl,
+}) => {
+  await context.newPage().then((p) => p.goto(VANGUARD_URL));
+  const popup = await context.newPage();
+  await popup.goto(`${popupBaseUrl}/popup.html`);
+
+  await popup.getByRole("button", { name: /↻ Vanguard/ }).click();
+  await expect(popup.getByText("Roth IRA")).toBeVisible({ timeout: 10_000 });
+
+  await popup.getByTitle("Alight").click();
+  await expect(popup.getByText("Roth IRA")).toBeHidden();
+
+  await popup.getByTitle("Vanguard").click();
+  await expect(popup.getByText("Roth IRA")).toBeVisible();
+});
+
+test("re-syncing after a successful sync still succeeds", async ({
+  context,
+  popupBaseUrl,
+}) => {
+  await context.newPage().then((p) => p.goto(VANGUARD_URL));
+  const popup = await context.newPage();
+  await popup.goto(`${popupBaseUrl}/popup.html`);
+
+  await popup.getByRole("button", { name: /↻ Vanguard/ }).click();
+  await expect(popup.getByText("Roth IRA")).toBeVisible({ timeout: 10_000 });
+
+  await context.newPage().then((p) => p.goto(PL_URL));
+  await popup.getByRole("button", { name: "↻ ProjectionLab" }).click();
+  await expect(popup.locator("select").first()).toBeEnabled({
+    timeout: 10_000,
+  });
+  await popup.locator("select").nth(0).selectOption("pl-roth-ira");
+
+  const syncBtn = popup.getByRole("button", { name: "Sync to ProjectionLab" });
+  await syncBtn.click();
+  await expect(popup.getByText(/✓.*Roth IRA/)).toBeVisible({ timeout: 10_000 });
+
+  // Capture lastSynced, trigger second sync, verify timestamp advanced
+  let sw = context.serviceWorkers()[0];
+  if (!sw) sw = await context.waitForEvent("serviceworker");
+  const first = await sw.evaluate(() =>
+    (globalThis as any).chrome.storage.local.get("lastSynced_vanguard"),
+  );
+
+  await syncBtn.click();
+  await expect(popup.getByText(/✓.*Roth IRA/)).toBeVisible({ timeout: 10_000 });
+
+  await expect
+    .poll(
+      async () =>
+        (
+          await sw.evaluate(() =>
+            (globalThis as any).chrome.storage.local.get("lastSynced_vanguard"),
+          )
+        ).lastSynced_vanguard,
+      { timeout: 5_000 },
+    )
+    .toBeGreaterThan(first.lastSynced_vanguard);
 });

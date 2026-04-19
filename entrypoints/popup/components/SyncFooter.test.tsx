@@ -45,6 +45,36 @@ describe("SyncFooter", () => {
     expect(onSync).toHaveBeenCalledOnce();
   });
 
+  it("does not call onSync when clicked while already syncing", () => {
+    const onSync = vi.fn();
+    render(
+      <SyncFooter
+        mappedCount={1}
+        totalCount={1}
+        plAccountsLoaded={true}
+        plSync={{ status: "syncing" }}
+        onSync={onSync}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button"));
+    expect(onSync).not.toHaveBeenCalled();
+  });
+
+  it("does not call onSync when clicked with zero mapped accounts", () => {
+    const onSync = vi.fn();
+    render(
+      <SyncFooter
+        mappedCount={0}
+        totalCount={3}
+        plAccountsLoaded={true}
+        plSync={{ status: "idle" }}
+        onSync={onSync}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button"));
+    expect(onSync).not.toHaveBeenCalled();
+  });
+
   it("shows error message when status is error", () => {
     render(<SyncFooter mappedCount={1} totalCount={1} plAccountsLoaded={true} plSync={{ status: "error", message: "API failed" }} onSync={vi.fn()} />);
     expect(screen.getByText("API failed")).toBeInTheDocument();

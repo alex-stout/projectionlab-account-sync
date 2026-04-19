@@ -31,6 +31,24 @@ describe("fmt", () => {
   it("formats large balances", () => {
     expect(fmt(1234567)).toBe("$1,234,567");
   });
+
+  it("formats negative balances with the minus outside the dollar sign", () => {
+    expect(fmt(-1500)).toBe("-$1,500");
+  });
+
+  it("formats a large negative balance (credit card / mortgage)", () => {
+    expect(fmt(-250_000)).toBe("-$250,000");
+  });
+
+  it("preserves two-decimal cents", () => {
+    expect(fmt(100.99)).toBe("$100.99");
+  });
+
+  it("drops trailing zero on a .50 value (toLocaleString default)", () => {
+    // Pins current behavior: a future change to always show 2 decimals
+    // would break this assertion and force a conscious decision.
+    expect(fmt(100.5)).toBe("$100.5");
+  });
 });
 
 describe("timeAgo", () => {
@@ -62,5 +80,23 @@ describe("timeAgo", () => {
     const now = Date.now();
     vi.setSystemTime(now + 3 * 3600_000);
     expect(timeAgo(now)).toBe("3h ago");
+  });
+
+  it("returns hours at the upper boundary (23h)", () => {
+    const now = Date.now();
+    vi.setSystemTime(now + 23 * 3600_000);
+    expect(timeAgo(now)).toBe("23h ago");
+  });
+
+  it("returns days for >= 24h ago", () => {
+    const now = Date.now();
+    vi.setSystemTime(now + 24 * 3600_000);
+    expect(timeAgo(now)).toBe("1d ago");
+  });
+
+  it("returns days for multi-day gaps", () => {
+    const now = Date.now();
+    vi.setSystemTime(now + 5 * 86400_000);
+    expect(timeAgo(now)).toBe("5d ago");
   });
 });

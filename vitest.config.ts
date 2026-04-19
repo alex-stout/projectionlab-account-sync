@@ -13,7 +13,11 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: ["entrypoints/**/*.{ts,tsx}", "plugins/**/*.{ts,tsx}"],
-      exclude: ["**/*.test.{ts,tsx}", "**/*.content.ts", "entrypoints/popup/index.tsx"],
+      exclude: [
+        "**/*.test.{ts,tsx}",
+        "**/*.content.ts",
+        "entrypoints/popup/main.tsx",
+      ],
       reporter: ["text", "html", "cobertura"],
     },
   },
