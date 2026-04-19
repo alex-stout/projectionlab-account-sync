@@ -8,7 +8,8 @@ A Chrome/Firefox browser extension that syncs account balances from financial in
   <img src="docs/screenshot.png" alt="Extension popup showing Vanguard account mappings" width="400" />
 </div>
 
-> **Community project** — This extension is not affiliated with, endorsed by, or maintained by ProjectionLab, Vanguard, Alight, or any other financial institution. It is an independent community tool that uses ProjectionLab's plugin API.
+> [!NOTE]
+> This extension is not affiliated with, endorsed by, or maintained by ProjectionLab, Vanguard, Alight, or any other financial institution. It is an independent community tool that uses ProjectionLab's plugin API.
 
 ## Supported sources
 
