@@ -16,6 +16,8 @@ ProjectionLab Account Sync does not collect, transmit, or share any of your data
 
 All of the above is stored in `chrome.storage.local` — the browser's on-device storage scoped to this extension. It is never synced across browsers, never uploaded to any server controlled by the developer, and never shared with third parties.
 
+**Credentials are stored in plaintext.** Like most browser extensions, this one does not encrypt your ProjectionLab API key, YNAB Personal Access Token, or any other saved credentials at rest — the browser's extension storage is not encrypted by default. Anyone with access to your browser profile directory (local malware, a shared OS account, an unencrypted disk that falls into the wrong hands) can read them. To reduce this risk: use a password-protected OS account, enable full-disk encryption (FileVault, BitLocker, LUKS), and revoke any saved token you suspect may have been exposed. You can clear all stored credentials at any time via **Settings → Clear All Data**.
+
 ## Where it goes
 
 The only outbound network requests this extension makes are:
