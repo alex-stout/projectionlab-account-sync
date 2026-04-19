@@ -37,7 +37,6 @@ export async function refresh(
     .map((a) => ({
       name: a.name,
       balance: a.balance / 1000,
-      rateOfReturn: null,
       accountId: a.id,
     }));
 }

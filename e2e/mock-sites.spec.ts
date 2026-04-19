@@ -271,10 +271,10 @@ test("PL accounts loaded in Settings populate dropdowns for every plugin", async
   const sw = await getServiceWorker(context);
   await seedStorage(sw, {
     accounts_vanguard: [
-      { name: "Roth IRA", balance: 1200, rateOfReturn: null, accountId: null },
+      { name: "Roth IRA", balance: 1200, accountId: null },
     ],
     accounts_alight: [
-      { name: "401(k) — Core", balance: 1650, rateOfReturn: null, accountId: null },
+      { name: "401(k) — Core", balance: 1650, accountId: null },
     ],
   });
 

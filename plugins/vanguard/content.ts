@@ -2,11 +2,6 @@ import "~/assets/tailwind.css";
 import vanguard from "./index";
 import { parseMoney, queryDeep, createMain } from "../content-utils";
 
-export function parsePercent(value: string | null) {
-  if (!value) return null;
-  return Number(value.replace("%", ""));
-}
-
 export function extractAccountId(href?: string) {
   if (!href) return null;
   const match = href.match(/ss-accountIds=(\d+)/);
@@ -27,7 +22,6 @@ export function extractPortfolio() {
     return [{
       name,
       balance,
-      rateOfReturn: parsePercent(container.querySelector(".rate-of-return span")?.textContent?.trim() ?? null),
       accountId: extractAccountId(href ?? undefined),
     }];
   });

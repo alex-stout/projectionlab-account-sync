@@ -194,7 +194,7 @@ test("PL key Clear button removes the key but preserves plugin data", async ({
   const sw = await getServiceWorker(context);
 
   const seededAccounts = [
-    { name: "Roth IRA", balance: 1200, rateOfReturn: null, accountId: null },
+    { name: "Roth IRA", balance: 1200, accountId: null },
   ];
   await seedStorage(sw, {
     plApiKey: "test-api-key",

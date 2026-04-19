@@ -14,7 +14,7 @@ const plugin: SourcePlugin = {
 const plAccounts = [{ id: "pl-1", name: "Retirement IRA" }];
 
 const accounts = [
-  { name: "IRA", balance: 5000, rateOfReturn: null, accountId: null },
+  { name: "IRA", balance: 5000, accountId: null },
 ];
 
 const defaults = {
@@ -100,7 +100,7 @@ describe("SourcePanel", () => {
   it("loads accounts and calls onRefreshed after successful source refresh", async () => {
     vi.mocked(browser.runtime.sendMessage).mockResolvedValue({
       ok: true,
-      accounts: [{ name: "IRA", balance: 5000, rateOfReturn: null, accountId: null }],
+      accounts: [{ name: "IRA", balance: 5000, accountId: null }],
     } as any);
     const onRefreshed = vi.fn();
     render(<SourcePanel {...defaults} onRefreshed={onRefreshed} />);

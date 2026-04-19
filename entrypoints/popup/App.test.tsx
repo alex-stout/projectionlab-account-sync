@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor, act, within } from "@testing-library/react";
 import App from "./App";
 
-const sourceAccounts = [{ name: "IRA", balance: 5000, rateOfReturn: null, accountId: null }];
+const sourceAccounts = [{ name: "IRA", balance: 5000, accountId: null }];
 
 beforeEach(() => {
   vi.mocked(browser.storage.local.get).mockReset().mockResolvedValue({} as any);
@@ -78,7 +78,7 @@ describe("App", () => {
       const arr: string[] = Array.isArray(keys) ? keys : [keys];
       const result: any = {};
       if (arr.includes("accounts_vanguard"))
-        result.accounts_vanguard = [{ name: "IRA", balance: 5000, rateOfReturn: null, accountId: null }];
+        result.accounts_vanguard = [{ name: "IRA", balance: 5000, accountId: null }];
       if (arr.includes("mappings_vanguard"))
         result.mappings_vanguard = { IRA: "pl-1" };
       return Promise.resolve(result);
@@ -206,7 +206,7 @@ describe("App", () => {
       if (arr.includes("plApiKey")) result.plApiKey = "test-key";
       if (arr.includes("accounts_vanguard"))
         result.accounts_vanguard = [
-          { name: "IRA", balance: 5000, rateOfReturn: null, accountId: null },
+          { name: "IRA", balance: 5000, accountId: null },
         ];
       return Promise.resolve(result);
     });
