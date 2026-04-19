@@ -7,7 +7,7 @@ const isE2E = process.env.E2E === "true";
 export default defineConfig({
   manifest: {
     name: "ProjectionLab Account Sync",
-    version: "0.1.0",
+    version: "0.3.0",
     permissions: ["storage", "tabs", "activeTab"],
     browser_specific_settings: {
       gecko: {

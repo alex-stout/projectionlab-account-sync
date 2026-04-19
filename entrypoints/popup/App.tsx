@@ -6,6 +6,7 @@ import {
   credsKey,
   plApiKey,
   plLastRefreshedKey,
+  disabledPluginsKey,
 } from "~/plugins";
 import SourcePanel from "./SourcePanel";
 import SettingsPanel from "./SettingsPanel";
@@ -25,12 +26,14 @@ export default function Popup() {
     {},
   );
   const [available, setAvailable] = useState<Record<string, boolean>>({});
+  const [disabledPlugins, setDisabledPlugins] = useState<string[]>([]);
 
   useEffect(() => {
     const keys = [
       "plAccounts",
       plApiKey,
       plLastRefreshedKey,
+      disabledPluginsKey,
       ...PLUGINS.map((p) => lastSyncedKey(p.id)),
       ...PLUGINS.map((p) => lastRefreshedKey(p.id)),
     ];
@@ -38,6 +41,7 @@ export default function Popup() {
       setHasApiKey(!!storage[plApiKey]);
       setPlAccounts((storage.plAccounts as PlAccount[]) ?? []);
       setPlLastRefreshed((storage[plLastRefreshedKey] as number) ?? null);
+      setDisabledPlugins((storage[disabledPluginsKey] as string[]) ?? []);
       const synced: Record<string, number> = {};
       const refreshed: Record<string, number> = {};
       for (const p of PLUGINS) {
@@ -95,16 +99,28 @@ export default function Popup() {
     setLastRefreshed((prev) => ({ ...prev, [sourceId]: Date.now() }));
   };
 
-  const activePlugin = PLUGINS.find((p) => p.id === activeId)!;
+  const handleTogglePlugin = async (pluginId: string, enabled: boolean) => {
+    const next = enabled
+      ? disabledPlugins.filter((id) => id !== pluginId)
+      : [...disabledPlugins, pluginId];
+    setDisabledPlugins(next);
+    await browser.storage.local.set({ [disabledPluginsKey]: next });
+  };
+
+  const enabledPlugins = PLUGINS.filter((p) => !disabledPlugins.includes(p.id));
+  const activePlugin =
+    enabledPlugins.find((p) => p.id === activeId) ?? enabledPlugins[0];
+  const forceSettings = !activePlugin;
+  const showSettings = view === "settings" || forceSettings;
 
   return (
-    <div className="flex w-115 h-120 bg-white text-sm text-gray-900 overflow-hidden">
+    <div className="flex w-full h-full min-w-115 bg-white text-sm text-gray-900 overflow-hidden">
       <Sidebar
-        plugins={PLUGINS}
-        activeId={activeId}
+        plugins={enabledPlugins}
+        activeId={activePlugin?.id ?? ""}
         lastSynced={lastSynced}
         available={available}
-        settingsActive={view === "settings"}
+        settingsActive={showSettings}
         hasApiKey={hasApiKey}
         onSelect={(id) => {
           setActiveId(id);
@@ -114,7 +130,7 @@ export default function Popup() {
       />
 
       <div className="flex flex-col flex-1 min-w-0">
-        {view === "settings" ? (
+        {showSettings ? (
           <SettingsPanel
             onKeyChange={setHasApiKey}
             onCredsChange={(pluginId, hasAllCreds) =>
@@ -125,18 +141,21 @@ export default function Popup() {
               setLastSynced({});
               setLastRefreshed({});
               setPlLastRefreshed(null);
+              setDisabledPlugins([]);
             }}
             plAccounts={plAccounts}
             plLoading={plLoading}
             plError={plError}
             plLastRefreshed={plLastRefreshed}
             onRefreshPL={handleRefreshPL}
+            disabledPlugins={disabledPlugins}
+            onTogglePlugin={handleTogglePlugin}
           />
         ) : (
           <>
             <div className="h-11.5 flex items-center px-4 border-b border-gray-100 shrink-0">
               <span className="font-semibold text-gray-800 text-sm">
-                {activePlugin.name}
+                {activePlugin!.name}
               </span>
               <span className="mx-2 text-gray-300">→</span>
               <span className="font-semibold text-gray-800 text-sm">
@@ -145,12 +164,12 @@ export default function Popup() {
             </div>
 
             <SourcePanel
-              key={activeId}
-              plugin={activePlugin}
+              key={activePlugin!.id}
+              plugin={activePlugin!}
               plAccounts={plAccounts}
-              lastRefreshed={lastRefreshed[activeId] ?? null}
-              onSynced={() => handleSynced(activeId)}
-              onRefreshed={() => handleRefreshed(activeId)}
+              lastRefreshed={lastRefreshed[activePlugin!.id] ?? null}
+              onSynced={() => handleSynced(activePlugin!.id)}
+              onRefreshed={() => handleRefreshed(activePlugin!.id)}
             />
           </>
         )}

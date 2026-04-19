@@ -8,6 +8,8 @@ const plDefaults = {
   plError: null,
   plLastRefreshed: null,
   onRefreshPL: vi.fn(),
+  disabledPlugins: [] as string[],
+  onTogglePlugin: vi.fn(),
 };
 
 beforeEach(() => {
@@ -15,6 +17,8 @@ beforeEach(() => {
   vi.mocked(browser.storage.local.set as any).mockReset().mockResolvedValue(undefined);
   vi.mocked((browser.storage.local as any).remove).mockReset().mockResolvedValue(undefined);
   plDefaults.onRefreshPL = vi.fn();
+  plDefaults.onTogglePlugin = vi.fn();
+  plDefaults.disabledPlugins = [];
 });
 
 // Multiple "Save" buttons exist (PL key + per-plugin creds). PL section renders first.
@@ -272,6 +276,80 @@ describe("SettingsPanel — ProjectionLab Accounts section", () => {
   it("does not render the plError banner when plError is null", () => {
     render(<SettingsPanel {...plDefaults} onKeyChange={vi.fn()} />);
     expect(screen.queryByText(/no api key/i)).not.toBeInTheDocument();
+  });
+});
+
+describe("SettingsPanel — Plugins section", () => {
+  it("renders a toggle for every plugin", () => {
+    render(<SettingsPanel {...plDefaults} onKeyChange={vi.fn()} />);
+    expect(screen.getByRole("checkbox", { name: "Enable Vanguard" })).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "Enable Alight" })).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "Enable YNAB" })).toBeInTheDocument();
+  });
+
+  it("toggles are checked by default (no disabled plugins)", () => {
+    render(<SettingsPanel {...plDefaults} onKeyChange={vi.fn()} />);
+    expect(screen.getByRole("checkbox", { name: "Enable Vanguard" })).toBeChecked();
+  });
+
+  it("renders a disabled plugin's toggle as unchecked", () => {
+    render(
+      <SettingsPanel
+        {...plDefaults}
+        disabledPlugins={["alight"]}
+        onKeyChange={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole("checkbox", { name: "Enable Alight" })).not.toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "Enable Vanguard" })).toBeChecked();
+  });
+
+  it("calls onTogglePlugin(id, false) when disabling", () => {
+    const onTogglePlugin = vi.fn();
+    render(
+      <SettingsPanel
+        {...plDefaults}
+        onTogglePlugin={onTogglePlugin}
+        onKeyChange={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole("checkbox", { name: "Enable Vanguard" }));
+    expect(onTogglePlugin).toHaveBeenCalledWith("vanguard", false);
+  });
+
+  it("calls onTogglePlugin(id, true) when enabling a disabled plugin", () => {
+    const onTogglePlugin = vi.fn();
+    render(
+      <SettingsPanel
+        {...plDefaults}
+        disabledPlugins={["ynab"]}
+        onTogglePlugin={onTogglePlugin}
+        onKeyChange={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole("checkbox", { name: "Enable YNAB" }));
+    expect(onTogglePlugin).toHaveBeenCalledWith("ynab", true);
+  });
+
+  it("hides the credentials section for a disabled API plugin", () => {
+    render(
+      <SettingsPanel
+        {...plDefaults}
+        disabledPlugins={["ynab"]}
+        onKeyChange={vi.fn()}
+      />,
+    );
+    expect(screen.queryByText(/YNAB Credentials/i)).not.toBeInTheDocument();
+  });
+
+  it("includes disabledPlugins in the storage.remove call on Clear All Data", async () => {
+    render(<SettingsPanel {...plDefaults} onKeyChange={vi.fn()} />);
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Clear All Data" }));
+    });
+    expect((browser.storage.local as any).remove).toHaveBeenCalledWith(
+      expect.arrayContaining(["disabledPlugins"]),
+    );
   });
 });
 

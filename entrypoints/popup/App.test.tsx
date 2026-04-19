@@ -231,6 +231,48 @@ describe("App", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("hides disabled plugins from the sidebar", async () => {
+    vi.mocked(browser.storage.local.get).mockResolvedValue({
+      disabledPlugins: ["alight", "ynab"],
+    } as any);
+    render(<App />);
+    await waitFor(() => expect(screen.getByTitle("Vanguard")).toBeInTheDocument());
+    expect(screen.queryByTitle("Alight")).not.toBeInTheDocument();
+    expect(screen.queryByTitle("YNAB")).not.toBeInTheDocument();
+  });
+
+  it("forces settings view when all plugins are disabled", async () => {
+    vi.mocked(browser.storage.local.get).mockResolvedValue({
+      disabledPlugins: ["vanguard", "alight", "ynab"],
+    } as any);
+    render(<App />);
+    await waitFor(() =>
+      expect(screen.getByText("ProjectionLab API Key")).toBeInTheDocument(),
+    );
+  });
+
+  it("falls back to the first enabled plugin when the active one is disabled via toggle", async () => {
+    render(<App />);
+    await waitFor(() => screen.getByTitle("Settings"));
+    await act(async () => { fireEvent.click(screen.getByTitle("Settings")); });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("checkbox", { name: "Enable Vanguard" }));
+    });
+    await waitFor(() => expect(screen.queryByTitle("Vanguard")).not.toBeInTheDocument());
+  });
+
+  it("persists disabledPlugins to storage when a plugin is toggled off", async () => {
+    render(<App />);
+    await waitFor(() => screen.getByTitle("Settings"));
+    await act(async () => { fireEvent.click(screen.getByTitle("Settings")); });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("checkbox", { name: "Enable Alight" }));
+    });
+    expect(browser.storage.local.set).toHaveBeenCalledWith({
+      disabledPlugins: ["alight"],
+    });
+  });
+
   it("silently ignores FETCH_PL_ACCOUNTS responses with neither accounts nor error", async () => {
     vi.mocked(browser.storage.local.get).mockResolvedValue({
       plAccounts: [{ id: "pl-1", name: "Existing" }],
