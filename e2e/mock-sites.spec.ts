@@ -37,9 +37,12 @@ test("loads ProjectionLab accounts into dropdowns from mock tab", async ({ conte
   await popup.getByRole("button", { name: /↻ Vanguard/ }).click();
   await expect(popup.getByText("Roth IRA")).toBeVisible({ timeout: 10_000 });
 
-  // Now open PL tab and load accounts
+  // Now open PL tab and load accounts from Settings
   await context.newPage().then((p) => p.goto(PL_URL));
-  await popup.getByRole("button", { name: "↻ ProjectionLab" }).click();
+  await popup.getByTitle("Settings").click();
+  await popup.getByRole("button", { name: "↻ Refresh" }).click();
+  await expect(popup.getByText(/\d+ loaded/)).toBeVisible({ timeout: 10_000 });
+  await popup.getByTitle("Vanguard").click();
 
   const firstSelect = popup.locator("select").first();
   await expect(firstSelect).toBeEnabled({ timeout: 10_000 });
@@ -59,9 +62,12 @@ test("full sync: Vanguard → ProjectionLab", async ({ context, popupBaseUrl }) 
   await expect(popup.getByText("Roth IRA")).toBeVisible({ timeout: 10_000 });
   await expect(popup.getByText("Traditional 401k")).toBeVisible();
 
-  // Step 2: open PL tab then pull PL accounts
+  // Step 2: open PL tab then pull PL accounts from Settings
   await context.newPage().then((p) => p.goto(PL_URL));
-  await popup.getByRole("button", { name: "↻ ProjectionLab" }).click();
+  await popup.getByTitle("Settings").click();
+  await popup.getByRole("button", { name: "↻ Refresh" }).click();
+  await expect(popup.getByText(/\d+ loaded/)).toBeVisible({ timeout: 10_000 });
+  await popup.getByTitle("Vanguard").click();
   const selects = popup.locator("select");
   await expect(selects.first()).toBeEnabled({ timeout: 10_000 });
 
@@ -105,9 +111,12 @@ test("full sync: Alight → ProjectionLab", async ({ context, popupBaseUrl }) =>
   await expect(popup.getByText("401(k) \u2014 Core")).toBeVisible({ timeout: 10_000 });
   await expect(popup.getByText("HSA \u2014 Health Savings")).toBeVisible();
 
-  // Step 2: open PL tab then pull PL accounts
+  // Step 2: open PL tab then pull PL accounts from Settings
   await context.newPage().then((p) => p.goto(PL_URL));
-  await popup.getByRole("button", { name: "↻ ProjectionLab" }).click();
+  await popup.getByTitle("Settings").click();
+  await popup.getByRole("button", { name: "↻ Refresh" }).click();
+  await expect(popup.getByText(/\d+ loaded/)).toBeVisible({ timeout: 10_000 });
+  await popup.getByTitle("Alight").click();
   const selects = popup.locator("select");
   await expect(selects.first()).toBeEnabled({ timeout: 10_000 });
 
@@ -155,7 +164,10 @@ test("sidebar shows 'just now' timestamp after a successful sync", async ({
   await expect(popup.getByText("Roth IRA")).toBeVisible({ timeout: 10_000 });
 
   await context.newPage().then((p) => p.goto(PL_URL));
-  await popup.getByRole("button", { name: "↻ ProjectionLab" }).click();
+  await popup.getByTitle("Settings").click();
+  await popup.getByRole("button", { name: "↻ Refresh" }).click();
+  await expect(popup.getByText(/\d+ loaded/)).toBeVisible({ timeout: 10_000 });
+  await popup.getByTitle("Vanguard").click();
   const selects = popup.locator("select");
   await expect(selects.first()).toBeEnabled({ timeout: 10_000 });
   await selects.nth(0).selectOption("pl-roth-ira");
@@ -180,7 +192,10 @@ test("mappings persist across popup reopen", async ({
   await expect(popup.getByText("Roth IRA")).toBeVisible({ timeout: 10_000 });
 
   await context.newPage().then((p) => p.goto(PL_URL));
-  await popup.getByRole("button", { name: "↻ ProjectionLab" }).click();
+  await popup.getByTitle("Settings").click();
+  await popup.getByRole("button", { name: "↻ Refresh" }).click();
+  await expect(popup.getByText(/\d+ loaded/)).toBeVisible({ timeout: 10_000 });
+  await popup.getByTitle("Vanguard").click();
   await expect(popup.locator("select").first()).toBeEnabled({
     timeout: 10_000,
   });
@@ -226,7 +241,10 @@ test("re-syncing after a successful sync still succeeds", async ({
   await expect(popup.getByText("Roth IRA")).toBeVisible({ timeout: 10_000 });
 
   await context.newPage().then((p) => p.goto(PL_URL));
-  await popup.getByRole("button", { name: "↻ ProjectionLab" }).click();
+  await popup.getByTitle("Settings").click();
+  await popup.getByRole("button", { name: "↻ Refresh" }).click();
+  await expect(popup.getByText(/\d+ loaded/)).toBeVisible({ timeout: 10_000 });
+  await popup.getByTitle("Vanguard").click();
   await expect(popup.locator("select").first()).toBeEnabled({
     timeout: 10_000,
   });

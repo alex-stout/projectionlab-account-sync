@@ -25,7 +25,7 @@ export default function SyncFooter({
         </span>
         {!plAccountsLoaded && (
           <span className="text-[11px] text-amber-500">
-            Open ProjectionLab and click ↻ ProjectionLab
+            Load PL accounts in Settings
           </span>
         )}
       </div>

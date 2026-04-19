@@ -32,7 +32,7 @@ export default function AccountRow({
         className="w-full text-xs border border-gray-200 rounded-md px-2 py-1.5 bg-white text-gray-800 disabled:bg-gray-50 disabled:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400"
       >
         <option value="">
-          {plAccounts.length === 0 ? "↻ Load PL accounts" : "Not mapped"}
+          {plAccounts.length === 0 ? "Load in Settings" : "Not mapped"}
         </option>
         {plAccounts.map((pla) => (
           <option key={pla.id} value={pla.id}>

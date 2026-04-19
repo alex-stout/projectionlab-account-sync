@@ -49,11 +49,13 @@ describe("App", () => {
       accounts: [{ id: "pl-1", name: "Brokerage" }],
     } as any);
     render(<App />);
-    await waitFor(() => screen.getByText("↻ ProjectionLab"));
-    await act(async () => { fireEvent.click(screen.getByText("↻ ProjectionLab")); });
+    await waitFor(() => screen.getByTitle("Settings"));
+    await act(async () => { fireEvent.click(screen.getByTitle("Settings")); });
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "↻ Refresh" })); });
     await waitFor(() => expect(browser.storage.local.set).toHaveBeenCalledWith(
       expect.objectContaining({ plAccounts: [{ id: "pl-1", name: "Brokerage" }] })
     ));
+    await act(async () => { fireEvent.click(screen.getByTitle("Vanguard")); });
     expect(screen.getByRole("option", { name: "Brokerage" })).toBeInTheDocument();
   });
 
@@ -167,19 +169,10 @@ describe("App", () => {
   it("shows plError banner when FETCH_PL_ACCOUNTS returns an error", async () => {
     vi.mocked(browser.runtime.sendMessage).mockResolvedValue({ error: "No API key set. Open extension settings." } as any);
     render(<App />);
-    await waitFor(() => screen.getByText("↻ ProjectionLab"));
-    await act(async () => { fireEvent.click(screen.getByText("↻ ProjectionLab")); });
+    await waitFor(() => screen.getByTitle("Settings"));
+    await act(async () => { fireEvent.click(screen.getByTitle("Settings")); });
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "↻ Refresh" })); });
     await waitFor(() => expect(screen.getByText(/no api key set/i)).toBeInTheDocument());
-  });
-
-  it("clears plError when plugin is switched", async () => {
-    vi.mocked(browser.runtime.sendMessage).mockResolvedValue({ error: "No API key set. Open extension settings." } as any);
-    render(<App />);
-    await waitFor(() => screen.getByText("↻ ProjectionLab"));
-    await act(async () => { fireEvent.click(screen.getByText("↻ ProjectionLab")); });
-    await waitFor(() => screen.getByText(/no api key set/i));
-    await act(async () => { fireEvent.click(screen.getByTitle("Alight")); });
-    expect(screen.queryByText(/no api key set/i)).not.toBeInTheDocument();
   });
 
   it("saving YNAB creds from Settings flips the sidebar availability dot", async () => {
@@ -246,10 +239,11 @@ describe("App", () => {
     vi.mocked(browser.runtime.sendMessage).mockResolvedValue({} as any);
     render(<App />);
     await waitFor(() => screen.getByRole("option", { name: "Existing" }));
-    await act(async () => { fireEvent.click(screen.getByText("↻ ProjectionLab")); });
-    // Existing accounts preserved, no error banner
-    expect(screen.getByRole("option", { name: "Existing" })).toBeInTheDocument();
+    await act(async () => { fireEvent.click(screen.getByTitle("Settings")); });
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "↻ Refresh" })); });
     expect(screen.queryByText(/no api key/i)).not.toBeInTheDocument();
+    await act(async () => { fireEvent.click(screen.getByTitle("Vanguard")); });
+    expect(screen.getByRole("option", { name: "Existing" })).toBeInTheDocument();
   });
 
   it("does not update plAccounts when response has no accounts field", async () => {
@@ -260,10 +254,12 @@ describe("App", () => {
     vi.mocked(browser.runtime.sendMessage).mockResolvedValue({ error: "not open" } as any);
     render(<App />);
     await waitFor(() => screen.getByRole("option", { name: "Existing" }));
-    await act(async () => { fireEvent.click(screen.getByText("↻ ProjectionLab")); });
-    expect(screen.getByRole("option", { name: "Existing" })).toBeInTheDocument();
+    await act(async () => { fireEvent.click(screen.getByTitle("Settings")); });
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "↻ Refresh" })); });
     expect(browser.storage.local.set).not.toHaveBeenCalledWith(
       expect.objectContaining({ plAccounts: expect.anything() })
     );
+    await act(async () => { fireEvent.click(screen.getByTitle("Vanguard")); });
+    expect(screen.getByRole("option", { name: "Existing" })).toBeInTheDocument();
   });
 });

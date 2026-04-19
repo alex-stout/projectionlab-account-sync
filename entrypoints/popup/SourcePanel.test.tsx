@@ -20,10 +20,7 @@ const accounts = [
 const defaults = {
   plugin,
   plAccounts: [],
-  plLoading: false,
-  plError: null,
   lastRefreshed: null,
-  onRefreshPL: vi.fn(),
   onSynced: vi.fn(),
   onRefreshed: vi.fn(),
 };
@@ -34,7 +31,6 @@ beforeEach(() => {
   vi.mocked(browser.runtime.sendMessage).mockReset().mockResolvedValue(undefined as any);
   defaults.onSynced = vi.fn();
   defaults.onRefreshed = vi.fn();
-  defaults.onRefreshPL = vi.fn();
 });
 
 // Helper: target the PanelHeader source-refresh button specifically
@@ -99,38 +95,6 @@ describe("SourcePanel", () => {
     render(<SourcePanel {...defaults} />);
     await act(async () => { fireEvent.click(getRefreshSourceBtn()); });
     expect(screen.getByText(/vanguard is not open/i)).toBeInTheDocument();
-  });
-
-  it("shows plError banner when plError is set", async () => {
-    render(<SourcePanel {...defaults} plError="No API key set. Open extension settings to add your ProjectionLab API key." />);
-    await waitFor(() =>
-      expect(screen.getByText(/no api key set/i)).toBeInTheDocument()
-    );
-  });
-
-  it("shows sourceError AND plError simultaneously", async () => {
-    vi.mocked(browser.runtime.sendMessage).mockResolvedValue({
-      error: "Vanguard is not open.",
-    } as any);
-    render(
-      <SourcePanel
-        {...defaults}
-        plError="No API key set. Open extension settings to add your ProjectionLab API key."
-      />,
-    );
-    await act(async () => { fireEvent.click(getRefreshSourceBtn()); });
-    // Both messages are visible — neither suppresses the other.
-    await waitFor(() =>
-      expect(screen.getByText(/no api key set/i)).toBeInTheDocument(),
-    );
-    expect(screen.getByText("Vanguard is not open.")).toBeInTheDocument();
-  });
-
-  it("does not show plError banner when plError is null", async () => {
-    render(<SourcePanel {...defaults} plError={null} />);
-    await waitFor(() =>
-      expect(screen.queryByText(/no api key set/i)).not.toBeInTheDocument()
-    );
   });
 
   it("loads accounts and calls onRefreshed after successful source refresh", async () => {

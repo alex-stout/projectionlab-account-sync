@@ -34,11 +34,8 @@ test("shows empty state with refresh prompt for Vanguard", async ({ page }) => {
   await expect(page.getByText(/Open Vanguard/)).toBeVisible();
 });
 
-test("shows refresh buttons in panel header", async ({ page }) => {
+test("shows source refresh button in panel header", async ({ page }) => {
   await expect(page.getByRole("button", { name: /↻ Vanguard/ })).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: /↻ ProjectionLab/ }),
-  ).toBeVisible();
 });
 
 test("shows error when refreshing source with no tab open", async ({
@@ -78,9 +75,7 @@ test("clicking gear again returns to main view", async ({ page }) => {
   await expect(page.getByText("ProjectionLab API Key")).toBeVisible();
   await page.getByTitle("Settings").click();
   await expect(page.getByText("ProjectionLab API Key")).toBeHidden();
-  await expect(
-    page.getByRole("button", { name: /↻ ProjectionLab/ }),
-  ).toBeVisible();
+  await expect(page.getByRole("button", { name: /↻ Vanguard/ })).toBeVisible();
 });
 
 test("clicking plugin button from settings returns to main view", async ({
@@ -89,9 +84,7 @@ test("clicking plugin button from settings returns to main view", async ({
   await page.getByTitle("Settings").click();
   await page.getByTitle("Vanguard").click();
   await expect(page.getByText("ProjectionLab API Key")).toBeHidden();
-  await expect(
-    page.getByRole("button", { name: /↻ ProjectionLab/ }),
-  ).toBeVisible();
+  await expect(page.getByRole("button", { name: /↻ Vanguard/ })).toBeVisible();
 });
 
 test("settings panel shows Clear All Data button", async ({ page }) => {
@@ -110,7 +103,8 @@ test("Clear All Data shows confirmation feedback", async ({ page }) => {
 test("shows error when refreshing PL accounts with no API key set", async ({
   page,
 }) => {
-  await page.getByRole("button", { name: /↻ ProjectionLab/ }).click();
+  await page.getByTitle("Settings").click();
+  await page.getByRole("button", { name: "↻ Refresh" }).click();
   await expect(page.getByText(/no api key/i)).toBeVisible({ timeout: 10_000 });
 });
 
