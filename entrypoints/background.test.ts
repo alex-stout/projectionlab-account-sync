@@ -11,8 +11,8 @@ const handler: (msg: any, sender: any, sendResponse: any) => any = vi.mocked(
   browser.runtime.onMessage.addListener,
 ).mock.calls[0][0] as any;
 
-// Handler returns a Promise (cross-browser MV3 pattern); awaiting it yields the response.
-const call = async (msg: any) => await handler(msg, {}, () => {});
+// Handler returns `true` for Chrome MV3; result is delivered via sendResponse callback
+const call = (msg: any) => new Promise<any>(resolve => { handler(msg, {}, resolve); });
 
 beforeEach(() => {
   vi.mocked(browser.tabs.query).mockReset();
