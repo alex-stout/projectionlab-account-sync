@@ -11,10 +11,13 @@ const handler: (msg: any, sender: any, sendResponse: any) => any = vi.mocked(
   browser.runtime.onMessage.addListener,
 ).mock.calls[0][0] as any;
 
+// Handler returns `true` for Chrome MV3; result is delivered via sendResponse callback
+const call = (msg: any) => new Promise<any>(resolve => { handler(msg, {}, resolve); });
+
 beforeEach(() => {
   vi.mocked(browser.tabs.query).mockReset();
   vi.mocked(browser.tabs.sendMessage as any).mockReset();
-  vi.mocked(browser.storage.local.get).mockReset();
+  vi.mocked(browser.storage.local.get).mockReset().mockResolvedValue({ plApiKey: "test-key" } as any);
   vi.mocked(browser.storage.local.set as any).mockReset().mockResolvedValue(undefined);
 });
 
@@ -29,7 +32,7 @@ describe("getPlTab", () => {
   it("tries all PL URLs and returns null if none open", async () => {
     vi.mocked(browser.tabs.query).mockResolvedValue([] as any);
     expect(await getPlTab()).toBeNull();
-    expect(browser.tabs.query).toHaveBeenCalledTimes(3);
+    expect(browser.tabs.query).toHaveBeenCalledTimes(2);
   });
 
   it("returns tab from ea URL if app URL has none", async () => {
@@ -61,74 +64,86 @@ describe("getSourceTab", () => {
   });
 });
 
-describe("SYNC_DATA", () => {
-  it("stores payload and sets lastRefreshed", async () => {
-    const result = await handler(
-      {
-        type: "SYNC_DATA",
-        sourceId: "vanguard",
-        payload: [{ name: "IRA", balance: 1000 }],
-      },
-      {},
-      () => {},
-    );
-    expect(browser.storage.local.set).toHaveBeenCalledWith(
-      expect.objectContaining({
-        accounts_vanguard: [{ name: "IRA", balance: 1000 }],
-      }),
-    );
-    expect(result.ok).toBe(true);
-  });
-});
-
 describe("SYNC_SOURCE", () => {
   it("returns error when tab is not open", async () => {
     vi.mocked(browser.tabs.query).mockResolvedValue([] as any);
-    const result = await handler(
-      { type: "SYNC_SOURCE", sourceId: "vanguard" },
-      {},
-      () => {},
-    );
+    const result = await call({ type: "SYNC_SOURCE", sourceId: "vanguard" });
     expect(result.error).toMatch(/not open/i);
   });
 
-  it("sends SYNC_REQUEST to source tab", async () => {
+  it("sends SYNC_REQUEST and returns accounts from tab response", async () => {
+    const payload = [{ name: "IRA", balance: 5000, rateOfReturn: null, accountId: null }];
     vi.mocked(browser.tabs.query).mockResolvedValueOnce([mockTab] as any);
-    vi.mocked(browser.tabs.sendMessage as any).mockResolvedValue({});
-    const result = await handler(
-      { type: "SYNC_SOURCE", sourceId: "vanguard" },
-      {},
-      () => {},
-    );
-    expect(browser.tabs.sendMessage).toHaveBeenCalledWith(mockTab.id, {
-      type: "SYNC_REQUEST",
-    });
+    vi.mocked(browser.tabs.sendMessage as any).mockResolvedValue({ ok: true, payload });
+    const result = await call({ type: "SYNC_SOURCE", sourceId: "vanguard" });
+    expect(browser.tabs.sendMessage).toHaveBeenCalledWith(mockTab.id, { type: "SYNC_REQUEST" });
     expect(result.ok).toBe(true);
+    expect(result.accounts).toEqual(payload);
+  });
+
+  it("writes accounts and lastRefreshed to storage on success", async () => {
+    const payload = [{ name: "IRA", balance: 5000, rateOfReturn: null, accountId: null }];
+    vi.mocked(browser.tabs.query).mockResolvedValueOnce([mockTab] as any);
+    vi.mocked(browser.tabs.sendMessage as any).mockResolvedValue({ ok: true, payload });
+    await call({ type: "SYNC_SOURCE", sourceId: "vanguard" });
+    expect(browser.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({ accounts_vanguard: payload, lastRefreshed_vanguard: expect.any(Number) })
+    );
+  });
+
+  it("returns error when tab response is falsy", async () => {
+    vi.mocked(browser.tabs.query).mockResolvedValueOnce([mockTab] as any);
+    vi.mocked(browser.tabs.sendMessage as any).mockResolvedValue(null);
+    const result = await call({ type: "SYNC_SOURCE", sourceId: "vanguard" });
+    expect(result.error).toMatch(/failed to read/i);
+  });
+
+  it("propagates the tab's specific error message when ok is false", async () => {
+    vi.mocked(browser.tabs.query).mockResolvedValueOnce([mockTab] as any);
+    vi.mocked(browser.tabs.sendMessage as any).mockResolvedValue({
+      ok: false,
+      error: "No accounts found on this page. Please open an issue.",
+    });
+    const result = await call({ type: "SYNC_SOURCE", sourceId: "vanguard" });
+    expect(result.error).toBe("No accounts found on this page. Please open an issue.");
+  });
+
+  it("returns error when tabs.sendMessage throws", async () => {
+    vi.mocked(browser.tabs.query).mockResolvedValueOnce([mockTab] as any);
+    vi.mocked(browser.tabs.sendMessage as any).mockRejectedValue(new Error("disconnected"));
+    const result = await call({ type: "SYNC_SOURCE", sourceId: "vanguard" });
+    expect(result.error).toMatch(/failed to read/i);
+  });
+
+  it("returns not-open error when getSourceTab throws", async () => {
+    vi.mocked(browser.tabs.query).mockRejectedValue(new Error("permission denied"));
+    const result = await call({ type: "SYNC_SOURCE", sourceId: "vanguard" });
+    expect(result.error).toMatch(/not open/i);
   });
 
   it("returns error for unknown plugin", async () => {
-    const result = await handler(
-      { type: "SYNC_SOURCE", sourceId: "unknown" },
-      {},
-      () => {},
-    );
+    const result = await call({ type: "SYNC_SOURCE", sourceId: "unknown" });
     expect(result.error).toMatch(/unknown/i);
   });
 });
 
 describe("FETCH_PL_ACCOUNTS", () => {
+  it("returns error when no API key is set", async () => {
+    vi.mocked(browser.storage.local.get).mockResolvedValue({} as any);
+    const result = await call({ type: "FETCH_PL_ACCOUNTS" });
+    expect(result.error).toMatch(/no api key/i);
+  });
+
   it("returns error when PL tab is not open", async () => {
     vi.mocked(browser.tabs.query).mockResolvedValue([] as any);
-    const result = await handler({ type: "FETCH_PL_ACCOUNTS" }, {}, () => {});
+    const result = await call({ type: "FETCH_PL_ACCOUNTS" });
     expect(result.error).toMatch(/not open/i);
   });
 
   it("forwards to PL tab and returns result", async () => {
     vi.mocked(browser.tabs.query).mockResolvedValueOnce([mockTab] as any);
-    vi.mocked(browser.tabs.sendMessage as any).mockResolvedValue({
-      accounts: [],
-    });
-    const result = await handler({ type: "FETCH_PL_ACCOUNTS" }, {}, () => {});
+    vi.mocked(browser.tabs.sendMessage as any).mockResolvedValue({ accounts: [] });
+    const result = await call({ type: "FETCH_PL_ACCOUNTS" });
     expect(browser.tabs.sendMessage).toHaveBeenCalledWith(
       mockTab.id,
       expect.objectContaining({ type: "FETCH_PL_ACCOUNTS" }),
@@ -138,46 +153,55 @@ describe("FETCH_PL_ACCOUNTS", () => {
 });
 
 describe("SYNC_TO_PL", () => {
+  it("returns error when no API key is set", async () => {
+    vi.mocked(browser.storage.local.get).mockResolvedValue({} as any);
+    const result = await call({ type: "SYNC_TO_PL", sourceId: "vanguard" });
+    expect(result.error).toMatch(/no api key/i);
+  });
+
   it("returns error when PL tab is not open", async () => {
     vi.mocked(browser.tabs.query).mockResolvedValue([] as any);
-    const result = await handler({ type: "SYNC_TO_PL", sourceId: "vanguard" }, {}, () => {});
+    const result = await call({ type: "SYNC_TO_PL", sourceId: "vanguard" });
     expect(result.error).toMatch(/not open/i);
   });
 
   it("falls back to empty accounts when storage key missing", async () => {
     vi.mocked(browser.tabs.query).mockResolvedValueOnce([mockTab] as any);
-    vi.mocked(browser.storage.local.get).mockResolvedValue({} as any);
-    const result = await handler({ type: "SYNC_TO_PL", sourceId: "vanguard" }, {}, () => {});
+    vi.mocked(browser.storage.local.get).mockResolvedValue({ plApiKey: "test-key" } as any);
+    const result = await call({ type: "SYNC_TO_PL", sourceId: "vanguard" });
     expect(result.error).toMatch(/no mapped/i);
   });
 
   it("falls back to empty mappings when mappings key missing", async () => {
     vi.mocked(browser.tabs.query).mockResolvedValueOnce([mockTab] as any);
     vi.mocked(browser.storage.local.get).mockResolvedValue({
+      plApiKey: "test-key",
       accounts_vanguard: [{ name: "IRA", balance: 5000, accountId: null }],
     } as any);
-    const result = await handler({ type: "SYNC_TO_PL", sourceId: "vanguard" }, {}, () => {});
+    const result = await call({ type: "SYNC_TO_PL", sourceId: "vanguard" });
     expect(result.error).toMatch(/no mapped/i);
   });
 
   it("skips accounts with no mapping entry", async () => {
     vi.mocked(browser.tabs.query).mockResolvedValueOnce([mockTab] as any);
     vi.mocked(browser.storage.local.get).mockResolvedValue({
+      plApiKey: "test-key",
       accounts_vanguard: [{ name: "IRA", balance: 5000, accountId: null }],
       mappings_vanguard: {},
     } as any);
-    const result = await handler({ type: "SYNC_TO_PL", sourceId: "vanguard" }, {}, () => {});
+    const result = await call({ type: "SYNC_TO_PL", sourceId: "vanguard" });
     expect(result.error).toMatch(/no mapped/i);
   });
 
   it("uses accountId as mapping key when present", async () => {
     vi.mocked(browser.tabs.query).mockResolvedValueOnce([mockTab] as any);
     vi.mocked(browser.storage.local.get).mockResolvedValue({
+      plApiKey: "test-key",
       accounts_vanguard: [{ name: "IRA", balance: 5000, accountId: "acc-123" }],
       mappings_vanguard: { "acc-123": "pl-uuid-1" },
     } as any);
     vi.mocked(browser.tabs.sendMessage as any).mockResolvedValue({ results: [{ name: "IRA", ok: true }] });
-    await handler({ type: "SYNC_TO_PL", sourceId: "vanguard" }, {}, () => {});
+    await call({ type: "SYNC_TO_PL", sourceId: "vanguard" });
     expect(browser.tabs.sendMessage).toHaveBeenCalledWith(
       mockTab.id,
       expect.objectContaining({ entries: [{ plId: "pl-uuid-1", balance: 5000, name: "IRA" }] }),
@@ -187,11 +211,12 @@ describe("SYNC_TO_PL", () => {
   it("sends mapped entries and sets lastSynced on success", async () => {
     vi.mocked(browser.tabs.query).mockResolvedValueOnce([mockTab] as any);
     vi.mocked(browser.storage.local.get).mockResolvedValue({
+      plApiKey: "test-key",
       accounts_vanguard: [{ name: "IRA", balance: 5000, accountId: null }],
       mappings_vanguard: { IRA: "pl-uuid-1" },
     } as any);
     vi.mocked(browser.tabs.sendMessage as any).mockResolvedValue({ results: [{ name: "IRA", ok: true }] });
-    const result = await handler({ type: "SYNC_TO_PL", sourceId: "vanguard" }, {}, () => {});
+    const result = await call({ type: "SYNC_TO_PL", sourceId: "vanguard" });
     expect(browser.storage.local.set).toHaveBeenCalledWith(
       expect.objectContaining({ lastSynced_vanguard: expect.any(Number) }),
     );
@@ -201,11 +226,12 @@ describe("SYNC_TO_PL", () => {
   it("does not set lastSynced when result has an error", async () => {
     vi.mocked(browser.tabs.query).mockResolvedValueOnce([mockTab] as any);
     vi.mocked(browser.storage.local.get).mockResolvedValue({
+      plApiKey: "test-key",
       accounts_vanguard: [{ name: "IRA", balance: 5000, accountId: null }],
       mappings_vanguard: { IRA: "pl-uuid-1" },
     } as any);
     vi.mocked(browser.tabs.sendMessage as any).mockResolvedValue({ error: "PL rejected" });
-    await handler({ type: "SYNC_TO_PL", sourceId: "vanguard" }, {}, () => {});
+    await call({ type: "SYNC_TO_PL", sourceId: "vanguard" });
     expect(browser.storage.local.set).not.toHaveBeenCalledWith(
       expect.objectContaining({ lastSynced_vanguard: expect.any(Number) }),
     );
@@ -214,18 +240,19 @@ describe("SYNC_TO_PL", () => {
   it("does not set lastSynced when result is falsy", async () => {
     vi.mocked(browser.tabs.query).mockResolvedValueOnce([mockTab] as any);
     vi.mocked(browser.storage.local.get).mockResolvedValue({
+      plApiKey: "test-key",
       accounts_vanguard: [{ name: "IRA", balance: 5000, accountId: null }],
       mappings_vanguard: { IRA: "pl-uuid-1" },
     } as any);
     vi.mocked(browser.tabs.sendMessage as any).mockResolvedValue(null);
-    await handler({ type: "SYNC_TO_PL", sourceId: "vanguard" }, {}, () => {});
+    await call({ type: "SYNC_TO_PL", sourceId: "vanguard" });
     expect(browser.storage.local.set).not.toHaveBeenCalled();
   });
 });
 
 describe("unknown message type", () => {
   it("returns undefined for unrecognized messages", async () => {
-    const result = await handler({ type: "UNKNOWN" }, {}, () => {});
+    const result = await call({ type: "UNKNOWN" });
     expect(result).toBeUndefined();
   });
 });

@@ -1,4 +1,4 @@
-import type { Account, PlAccount } from "../types";
+import type { Account, PlAccount } from "~/types";
 import { fmt } from "../utils";
 
 type Props = {
@@ -9,11 +9,19 @@ type Props = {
   onChange: (key: string, plId: string) => void;
 };
 
-export default function AccountRow({ accountKey, account, mapped, plAccounts, onChange }: Props) {
+export default function AccountRow({
+  accountKey,
+  account,
+  mapped,
+  plAccounts,
+  onChange,
+}: Props) {
   return (
     <div className="grid grid-cols-[1fr_auto_152px] gap-2 items-center py-2">
       <div className="min-w-0">
-        <div className="truncate font-medium text-gray-800 text-xs">{account.name}</div>
+        <div className="truncate font-medium text-gray-800 text-xs">
+          {account.name}
+        </div>
         <div className="text-gray-400 text-[11px]">{fmt(account.balance)}</div>
       </div>
       <span className="text-gray-300 text-xs">→</span>

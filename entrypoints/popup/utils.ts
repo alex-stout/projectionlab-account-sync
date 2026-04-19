@@ -1,4 +1,4 @@
-import type { Account } from "./types";
+import type { Account } from "~/types";
 
 export function accountKey(acc: Account, i: number): string {
   return acc.accountId ?? acc.name;

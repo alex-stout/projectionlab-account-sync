@@ -1,4 +1,4 @@
-import type { PlSyncState } from "../types";
+import type { PlSyncState } from "~/types";
 
 type Props = {
   mappedCount: number;
@@ -8,7 +8,13 @@ type Props = {
   onSync: () => void;
 };
 
-export default function SyncFooter({ mappedCount, totalCount, plAccountsLoaded, plSync, onSync }: Props) {
+export default function SyncFooter({
+  mappedCount,
+  totalCount,
+  plAccountsLoaded,
+  plSync,
+  onSync,
+}: Props) {
   const canSync = mappedCount > 0 && plSync.status !== "syncing";
 
   return (
@@ -39,11 +45,17 @@ export default function SyncFooter({ mappedCount, totalCount, plAccountsLoaded, 
         <div className="space-y-1">
           {plSync.results.map((r, i) =>
             r.ok ? (
-              <div key={i} className="text-[11px] text-green-700 flex items-center gap-1.5">
+              <div
+                key={i}
+                className="text-[11px] text-green-700 flex items-center gap-1.5"
+              >
                 <span className="text-green-500">✓</span> {r.name}
               </div>
             ) : (
-              <div key={i} className="text-[11px] text-red-600 flex items-center gap-1.5">
+              <div
+                key={i}
+                className="text-[11px] text-red-600 flex items-center gap-1.5"
+              >
                 <span>✗</span> {r.name}: {r.error}
               </div>
             ),

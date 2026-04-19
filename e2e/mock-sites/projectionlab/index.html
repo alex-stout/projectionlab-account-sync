@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mock ProjectionLab</title>
+  <script>
+    const MOCK_ACCOUNTS = [
+      { id: "pl-roth-ira", name: "Roth IRA" },
+      { id: "pl-401k", name: "Traditional 401k" },
+    ];
+
+    const updates = {};
+
+    window.projectionlabPluginAPI = {
+      exportData: ({ key }) =>
+        Promise.resolve({
+          today: {
+            investmentAccounts: MOCK_ACCOUNTS,
+            savingsAccounts: [],
+            assets: [],
+            debts: [],
+          },
+        }),
+      updateAccount: (id, { balance }, { key }) => {
+        updates[id] = balance;
+        return Promise.resolve();
+      },
+    };
+
+    window.__mockPlUpdates = updates;
+
+    // Implement the same event bridge that projectionlab-main.js provides in the
+    // real app. The content script dispatches these events; we handle them here so
+    // the extension works on localhost without needing web_accessible_resources.
+    window.addEventListener("pl-ext-fetch-accounts", async (e) => {
+      const { id, apiKey } = e.detail;
+      try {
+        const data = await window.projectionlabPluginAPI.exportData({ key: apiKey });
+        const accounts = [
+          ...(data.today?.investmentAccounts ?? []),
+          ...(data.today?.savingsAccounts ?? []),
+          ...(data.today?.assets ?? []),
+          ...(data.today?.debts ?? []),
+        ].map((a) => ({ id: a.id, name: a.name }));
+        window.dispatchEvent(new CustomEvent(`pl-ext-result-${id}`, { detail: { accounts } }));
+      } catch (err) {
+        window.dispatchEvent(new CustomEvent(`pl-ext-result-${id}`, { detail: { error: String(err) } }));
+      }
+    });
+
+    window.addEventListener("pl-ext-sync-entries", async (e) => {
+      const { id, entries, apiKey } = e.detail;
+      const results = [];
+      for (const entry of entries) {
+        try {
+          await window.projectionlabPluginAPI.updateAccount(entry.plId, { balance: entry.balance }, { key: apiKey });
+          results.push({ name: entry.name, ok: true });
+        } catch (err) {
+          results.push({ name: entry.name, ok: false, error: String(err) });
+        }
+      }
+      window.dispatchEvent(new CustomEvent(`pl-ext-result-${id}`, { detail: { results } }));
+    });
+  </script>
+</head>
+<body>
+  <h1>Mock ProjectionLab</h1>
+</body>
+</html>

@@ -15,3 +15,4 @@ export const accountsKey = (sourceId: string) => `accounts_${sourceId}`;
 export const mappingsKey = (sourceId: string) => `mappings_${sourceId}`;
 export const lastSyncedKey = (sourceId: string) => `lastSynced_${sourceId}`;
 export const lastRefreshedKey = (sourceId: string) => `lastRefreshed_${sourceId}`;
+export const plApiKey = "plApiKey";

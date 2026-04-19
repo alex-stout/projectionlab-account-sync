@@ -1,8 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { accountKey, fmt, timeAgo } from "./utils";
-import type { Account } from "./types";
+import type { Account } from "~/types";
 
-const base: Account = { name: "Vanguard 401k", balance: 100000, rateOfReturn: null, accountId: null };
+const base: Account = {
+  name: "Vanguard 401k",
+  balance: 100000,
+  rateOfReturn: null,
+  accountId: null,
+};
 
 describe("accountKey", () => {
   it("prefers accountId over name", () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import SourcePanel from "./SourcePanel";
 import type { SourcePlugin } from "~/plugins";
@@ -20,6 +20,7 @@ const defaults = {
   plugin,
   plAccounts: [],
   plLoading: false,
+  plError: null,
   lastRefreshed: null,
   onRefreshPL: vi.fn(),
   onSynced: vi.fn(),
@@ -33,10 +34,6 @@ beforeEach(() => {
   defaults.onSynced = vi.fn();
   defaults.onRefreshed = vi.fn();
   defaults.onRefreshPL = vi.fn();
-});
-
-afterEach(() => {
-  vi.useRealTimers();
 });
 
 // Helper: target the PanelHeader source-refresh button specifically
@@ -79,16 +76,28 @@ describe("SourcePanel", () => {
     expect(screen.getByText("Tab not open")).toBeInTheDocument();
   });
 
+  it("shows plError banner when plError is set", async () => {
+    render(<SourcePanel {...defaults} plError="No API key set. Open extension settings to add your ProjectionLab API key." />);
+    await waitFor(() =>
+      expect(screen.getByText(/no api key set/i)).toBeInTheDocument()
+    );
+  });
+
+  it("does not show plError banner when plError is null", async () => {
+    render(<SourcePanel {...defaults} plError={null} />);
+    await waitFor(() =>
+      expect(screen.queryByText(/no api key set/i)).not.toBeInTheDocument()
+    );
+  });
+
   it("loads accounts and calls onRefreshed after successful source refresh", async () => {
-    vi.useFakeTimers();
-    vi.mocked(browser.runtime.sendMessage).mockResolvedValue({ ok: true } as any);
-    vi.mocked(browser.storage.local.get)
-      .mockResolvedValueOnce({} as any)
-      .mockResolvedValueOnce({ accounts_vanguard: accounts } as any);
+    vi.mocked(browser.runtime.sendMessage).mockResolvedValue({
+      ok: true,
+      accounts: [{ name: "IRA", balance: 5000, rateOfReturn: null, accountId: null }],
+    } as any);
     const onRefreshed = vi.fn();
     render(<SourcePanel {...defaults} onRefreshed={onRefreshed} />);
     await act(async () => { fireEvent.click(getRefreshSourceBtn()); });
-    await act(async () => { await vi.runAllTimersAsync(); });
     expect(onRefreshed).toHaveBeenCalledOnce();
     expect(screen.getByText("IRA")).toBeInTheDocument();
   });

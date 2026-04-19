@@ -55,22 +55,34 @@ describe("createMain", () => {
     expect(browser.runtime.onMessage.addListener).toHaveBeenCalled();
   });
 
-  it("sends SYNC_DATA with payload on SYNC_REQUEST", async () => {
+  it("calls sendResponse with { ok, payload } on SYNC_REQUEST", async () => {
     const payload = [{ name: "Account", balance: 100, rateOfReturn: null, accountId: null }];
     const extract = vi.fn().mockReturnValue(payload);
     const main = createMain("test-plugin", extract);
     main();
 
     const listener = vi.mocked(browser.runtime.onMessage.addListener).mock.calls.at(-1)![0];
-    listener({ type: "SYNC_REQUEST" }, {} as any, () => {});
+    const sendResponse = vi.fn();
+    const returned = listener({ type: "SYNC_REQUEST" }, {} as any, sendResponse);
+    expect(returned).toBe(true);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(sendResponse).toHaveBeenCalledWith({ ok: true, payload });
+    expect(browser.runtime.sendMessage).not.toHaveBeenCalled();
+  });
 
-    await Promise.resolve();
+  it("calls sendResponse with { ok: false, error } when extract returns empty array", async () => {
+    const extract = vi.fn().mockReturnValue([]);
+    const main = createMain("test-plugin", extract);
+    main();
 
-    expect(browser.runtime.sendMessage).toHaveBeenCalledWith({
-      type: "SYNC_DATA",
-      sourceId: "test-plugin",
-      payload,
-    });
+    const listener = vi.mocked(browser.runtime.onMessage.addListener).mock.calls.at(-1)![0];
+    const sendResponse = vi.fn();
+    listener({ type: "SYNC_REQUEST" }, {} as any, sendResponse);
+    await new Promise((r) => setTimeout(r, 0));
+    const result = sendResponse.mock.calls[0][0];
+    expect(result.ok).toBe(false);
+    expect(result.error).toMatch(/no accounts found/i);
+    expect(result.error).toMatch(/github\.com/i);
   });
 
   it("ignores non-SYNC_REQUEST messages", async () => {
@@ -79,10 +91,10 @@ describe("createMain", () => {
     main();
 
     const listener = vi.mocked(browser.runtime.onMessage.addListener).mock.calls.at(-1)![0];
-    listener({ type: "OTHER_MESSAGE" }, {} as any, () => {});
-
+    const returned = listener({ type: "OTHER_MESSAGE" }, {} as any, vi.fn());
     await Promise.resolve();
     expect(extract).not.toHaveBeenCalled();
+    expect(returned).not.toBe(true);
   });
 
   it("works with an async extract function", async () => {
@@ -92,14 +104,9 @@ describe("createMain", () => {
     main();
 
     const listener = vi.mocked(browser.runtime.onMessage.addListener).mock.calls.at(-1)![0];
-    listener({ type: "SYNC_REQUEST" }, {} as any, () => {});
-
+    const sendResponse = vi.fn();
+    listener({ type: "SYNC_REQUEST" }, {} as any, sendResponse);
     await new Promise((r) => setTimeout(r, 0));
-
-    expect(browser.runtime.sendMessage).toHaveBeenCalledWith({
-      type: "SYNC_DATA",
-      sourceId: "test-plugin",
-      payload,
-    });
+    expect(sendResponse).toHaveBeenCalledWith({ ok: true, payload });
   });
 });

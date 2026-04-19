@@ -1,5 +1,5 @@
 import type { SourcePlugin } from "~/plugins";
-import type { Account, PlAccount } from "../types";
+import type { Account, PlAccount } from "~/types";
 import { accountKey } from "../utils";
 import AccountRow from "./AccountRow";
 
@@ -12,7 +12,14 @@ type Props = {
   onMappingChange: (key: string, plId: string) => void;
 };
 
-export default function AccountList({ plugin, accounts, mappings, plAccounts, sourceError, onMappingChange }: Props) {
+export default function AccountList({
+  plugin,
+  accounts,
+  mappings,
+  plAccounts,
+  sourceError,
+  onMappingChange,
+}: Props) {
   return (
     <div className="flex-1 overflow-y-auto px-4 py-3">
       {sourceError && (
@@ -21,8 +28,17 @@ export default function AccountList({ plugin, accounts, mappings, plAccounts, so
 
       {accounts.length === 0 ? (
         <div className="py-8 text-center text-gray-400 text-xs leading-relaxed">
-          <img src={plugin.icon} alt={plugin.name} className="w-8 h-8 object-contain mx-auto mb-2 opacity-40" />
-          {plugin.hint ?? <>Open {plugin.name} and click <strong className="text-gray-600">↻ {plugin.name}</strong>.</>}
+          <img
+            src={plugin.icon}
+            alt={plugin.name}
+            className="w-8 h-8 object-contain mx-auto mb-2 opacity-40"
+          />
+          {plugin.hint ?? (
+            <>
+              Open {plugin.name} and click{" "}
+              <strong className="text-gray-600">↻ {plugin.name}</strong>.
+            </>
+          )}
         </div>
       ) : (
         <>

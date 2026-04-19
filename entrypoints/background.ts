@@ -1,24 +1,19 @@
-import { PLUGINS, accountsKey, mappingsKey, lastSyncedKey, lastRefreshedKey } from "~/plugins";
-
-type Account = {
-  name: string;
-  balance: number;
-  rateOfReturn: number | null;
-  accountId: string | null;
-};
+import {
+  PLUGINS,
+  accountsKey,
+  mappingsKey,
+  lastSyncedKey,
+  lastRefreshedKey,
+  plApiKey,
+} from "~/plugins";
+import { PL_MATCHES } from "~/lib/urls";
+import { Account } from "~/types";
 
 type SyncEntry = { plId: string; balance: number; name: string };
 
-const PL_URLS = [
-  "https://app.projectionlab.com/*",
-  "https://ea.projectionlab.com/*",
-  "https://preview.projectionlab.com/*",
-];
-
 export async function getPlTab() {
-  for (const url of PL_URLS) {
+  for (const url of PL_MATCHES) {
     const tabs = await browser.tabs.query({ url });
-    console.log(`[PL-ext bg] tabs.query(${url}):`, tabs.length);
     if (tabs.length > 0) return tabs[0];
   }
   return null;
@@ -34,89 +29,126 @@ export async function getSourceTab(sourceId: string) {
   return null;
 }
 
-export default defineBackground(() => {
-  browser.runtime.onMessage.addListener(async (msg) => {
-    console.log("[PL-ext bg] message:", msg.type, msg.sourceId ?? "");
-    const apiKey = import.meta.env.WXT_PROJECTIONLAB_API as string;
+async function getApiKey(): Promise<string> {
+  const stored = await browser.storage.local.get(plApiKey);
+  return (stored[plApiKey] as string) || "";
+}
 
-    if (msg.type === "SYNC_DATA") {
-      console.log("[PL-ext bg] SYNC_DATA payload:", JSON.stringify(msg.payload));
+async function handleMessage(msg: any): Promise<any> {
+  if (msg.type === "SYNC_SOURCE") {
+    const plugin = PLUGINS.find((p) => p.id === msg.sourceId);
+    if (!plugin) return { error: `Unknown plugin: ${msg.sourceId}` };
+
+    let tab: Awaited<ReturnType<typeof getSourceTab>>;
+    try {
+      tab = await getSourceTab(msg.sourceId);
+    } catch {
+      tab = null;
+    }
+    if (!tab?.id) {
+      return {
+        error: `${plugin.name} is not open. Navigate to ${plugin.name} and try again.`,
+      };
+    }
+
+    let tabResult: { ok: boolean; payload?: Account[]; error?: string } | null;
+    try {
+      tabResult = await browser.tabs.sendMessage(tab.id, {
+        type: "SYNC_REQUEST",
+      });
+    } catch {
+      tabResult = null;
+    }
+
+    if (!tabResult?.ok) {
+      return {
+        error:
+          tabResult?.error ??
+          `Failed to read data from ${plugin.name}. Try refreshing the page.`,
+      };
+    }
+
+    await browser.storage.local.set({
+      [accountsKey(msg.sourceId)]: tabResult.payload!,
+      [lastRefreshedKey(msg.sourceId)]: Date.now(),
+    });
+
+    return { ok: true, accounts: tabResult.payload! };
+  }
+
+  if (msg.type === "FETCH_PL_ACCOUNTS") {
+    const apiKey = await getApiKey();
+    if (!apiKey)
+      return {
+        error:
+          "No API key set. Open extension settings to add your ProjectionLab API key.",
+      };
+    const tab = await getPlTab();
+    if (!tab?.id) {
+      return { error: "ProjectionLab is not open. Open it and try again." };
+    }
+    return browser.tabs.sendMessage(tab.id, {
+      type: "FETCH_PL_ACCOUNTS",
+      apiKey,
+    });
+  }
+
+  if (msg.type === "SYNC_TO_PL") {
+    const apiKey = await getApiKey();
+    if (!apiKey)
+      return {
+        error:
+          "No API key set. Open extension settings to add your ProjectionLab API key.",
+      };
+    const { sourceId } = msg;
+    const tab = await getPlTab();
+    if (!tab?.id) {
+      return { error: "ProjectionLab is not open. Open it and try again." };
+    }
+
+    const storage = await browser.storage.local.get([
+      accountsKey(sourceId),
+      mappingsKey(sourceId),
+    ]);
+    const accounts = (storage[accountsKey(sourceId)] as Account[]) ?? [];
+    const mappings =
+      (storage[mappingsKey(sourceId)] as Record<string, string>) ?? {};
+
+    const entries: SyncEntry[] = accounts
+      .map((acc) => {
+        const key = acc.accountId ?? acc.name;
+        const plId = mappings[key];
+        return plId && acc.balance !== null
+          ? { plId, balance: acc.balance, name: acc.name }
+          : null;
+      })
+      .filter((e): e is SyncEntry => e !== null);
+
+    if (entries.length === 0) {
+      return { error: "No mapped accounts with balances to sync." };
+    }
+
+    const result = await browser.tabs.sendMessage(tab.id, {
+      type: "SYNC_ENTRIES",
+      entries,
+      apiKey,
+    });
+
+    if (result && !result.error) {
       await browser.storage.local.set({
-        [accountsKey(msg.sourceId)]: msg.payload,
-        [lastRefreshedKey(msg.sourceId)]: Date.now(),
+        [lastSyncedKey(sourceId)]: Date.now(),
       });
-      return { ok: true };
     }
 
-    if (msg.type === "SYNC_SOURCE") {
-      const plugin = PLUGINS.find((p) => p.id === msg.sourceId);
-      if (!plugin) return { error: `Unknown plugin: ${msg.sourceId}` };
+    return result;
+  }
+}
 
-      const tab = await getSourceTab(msg.sourceId);
-      if (!tab?.id) {
-        return {
-          error: `${plugin.name} is not open. Navigate to ${plugin.name} and try again.`,
-        };
-      }
-
-      await browser.tabs.sendMessage(tab.id, { type: "SYNC_REQUEST" });
-      return { ok: true };
-    }
-
-    if (msg.type === "FETCH_PL_ACCOUNTS") {
-      const tab = await getPlTab();
-      console.log("[PL-ext bg] FETCH_PL_ACCOUNTS tab:", tab?.id, tab?.url);
-      if (!tab?.id) {
-        return { error: "ProjectionLab is not open. Open it and try again." };
-      }
-      const result = await browser.tabs.sendMessage(tab.id, {
-        type: "FETCH_PL_ACCOUNTS",
-        apiKey,
-      });
-      console.log("[PL-ext bg] FETCH_PL_ACCOUNTS result:", result);
-      return result;
-    }
-
-    if (msg.type === "SYNC_TO_PL") {
-      const { sourceId } = msg;
-      const tab = await getPlTab();
-      if (!tab?.id) {
-        return { error: "ProjectionLab is not open. Open it and try again." };
-      }
-
-      const storage = await browser.storage.local.get([
-        accountsKey(sourceId),
-        mappingsKey(sourceId),
-      ]);
-      const accounts = (storage[accountsKey(sourceId)] as Account[]) ?? [];
-      const mappings =
-        (storage[mappingsKey(sourceId)] as Record<string, string>) ?? {};
-
-      const entries: SyncEntry[] = accounts
-        .map((acc, i) => {
-          const key = acc.accountId ?? acc.name;
-          const plId = mappings[key];
-          return plId && acc.balance !== null
-            ? { plId, balance: acc.balance, name: acc.name }
-            : null;
-        })
-        .filter((e): e is SyncEntry => e !== null);
-
-      if (entries.length === 0) {
-        return { error: "No mapped accounts with balances to sync." };
-      }
-
-      const result = await browser.tabs.sendMessage(tab.id, {
-        type: "SYNC_ENTRIES",
-        entries,
-        apiKey,
-      });
-
-      if (result && !result.error) {
-        await browser.storage.local.set({ [lastSyncedKey(sourceId)]: Date.now() });
-      }
-
-      return result;
-    }
-  });
+export default defineBackground(() => {
+  browser.runtime.onMessage.addListener(
+    (msg: any, _sender: any, sendResponse: (r: any) => void) => {
+      handleMessage(msg).then(sendResponse);
+      return true;
+    },
+  );
 });

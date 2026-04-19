@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { accountsKey, mappingsKey, type SourcePlugin } from "~/plugins";
-import type { Account, PlAccount, PlSyncState, SyncResult } from "./types";
+import type { Account, PlAccount, PlSyncState, SyncResult } from "~/types";
 import { accountKey } from "./utils";
 import PanelHeader from "./components/PanelHeader";
 import AccountList from "./components/AccountList";
@@ -10,13 +10,23 @@ type Props = {
   plugin: SourcePlugin;
   plAccounts: PlAccount[];
   plLoading: boolean;
+  plError: string | null;
   lastRefreshed: number | null;
   onRefreshPL: () => void;
   onSynced: () => void;
   onRefreshed: () => void;
 };
 
-export default function SourcePanel({ plugin, plAccounts, plLoading, lastRefreshed, onRefreshPL, onSynced, onRefreshed }: Props) {
+export default function SourcePanel({
+  plugin,
+  plAccounts,
+  plLoading,
+  plError,
+  lastRefreshed,
+  onRefreshPL,
+  onSynced,
+  onRefreshed,
+}: Props) {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [mappings, setMappings] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -28,7 +38,9 @@ export default function SourcePanel({ plugin, plAccounts, plLoading, lastRefresh
       .get([accountsKey(plugin.id), mappingsKey(plugin.id)])
       .then((storage) => {
         setAccounts((storage[accountsKey(plugin.id)] as Account[]) ?? []);
-        setMappings((storage[mappingsKey(plugin.id)] as Record<string, string>) ?? {});
+        setMappings(
+          (storage[mappingsKey(plugin.id)] as Record<string, string>) ?? {},
+        );
       });
     setPlSync({ status: "idle" });
     setSourceError(null);
@@ -37,21 +49,32 @@ export default function SourcePanel({ plugin, plAccounts, plLoading, lastRefresh
   const handleRefreshSource = async () => {
     setSourceError(null);
     setLoading(true);
-    const response = await browser.runtime.sendMessage({
-      type: "SYNC_SOURCE",
-      sourceId: plugin.id,
-    }) as { ok?: boolean; error?: string };
-    if (response?.error) {
-      setSourceError(response.error);
+    let response: { ok?: boolean; accounts?: Account[]; error?: string };
+    try {
+      response = await browser.runtime.sendMessage({
+        type: "SYNC_SOURCE",
+        sourceId: plugin.id,
+      });
+    } catch (e) {
+      setSourceError(
+        e instanceof Error
+          ? e.message
+          : "Failed to communicate with background.",
+      );
       setLoading(false);
       return;
     }
-    setTimeout(async () => {
-      const storage = await browser.storage.local.get(accountsKey(plugin.id));
-      setAccounts((storage[accountsKey(plugin.id)] as Account[]) ?? []);
+    if (!response || response?.error) {
+      setSourceError(
+        response?.error ??
+          `${plugin.name} is not open. Navigate to ${plugin.name} and try again.`,
+      );
       setLoading(false);
-      onRefreshed();
-    }, 600);
+      return;
+    }
+    setAccounts(response.accounts ?? []);
+    setLoading(false);
+    onRefreshed();
   };
 
   const handleMappingChange = async (vKey: string, plId: string) => {
@@ -63,10 +86,10 @@ export default function SourcePanel({ plugin, plAccounts, plLoading, lastRefresh
 
   const handleSync = async () => {
     setPlSync({ status: "syncing" });
-    const response = await browser.runtime.sendMessage({
+    const response = (await browser.runtime.sendMessage({
       type: "SYNC_TO_PL",
       sourceId: plugin.id,
-    }) as { results?: SyncResult[]; error?: string };
+    })) as { results?: SyncResult[]; error?: string };
     if (response?.error) {
       setPlSync({ status: "error", message: response.error });
     } else {
@@ -75,7 +98,9 @@ export default function SourcePanel({ plugin, plAccounts, plLoading, lastRefresh
     }
   };
 
-  const mappedCount = accounts.filter((acc, i) => !!mappings[accountKey(acc, i)]).length;
+  const mappedCount = accounts.filter(
+    (acc, i) => !!mappings[accountKey(acc, i)],
+  ).length;
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
@@ -87,6 +112,12 @@ export default function SourcePanel({ plugin, plAccounts, plLoading, lastRefresh
         onRefreshSource={handleRefreshSource}
         onRefreshPL={onRefreshPL}
       />
+
+      {plError && (
+        <div className="mx-4 mt-2 text-xs text-red-600 bg-red-50 border border-red-100 rounded-md px-3 py-2">
+          {plError}
+        </div>
+      )}
 
       <AccountList
         plugin={plugin}

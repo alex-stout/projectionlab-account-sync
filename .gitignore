@@ -26,4 +26,10 @@ web-ext.config.ts
 *.sw?
 
 .env
+
+# unit tests
 coverage/
+
+# E2E tests
+playwright-report/
+test-results/

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { SyncResult } from "./popup/types";
+import type { SyncResult } from "~/types";
 import setup from "./projectionlab-main";
 
 const mockApi = {
@@ -20,9 +20,13 @@ function dispatch(eventName: string, detail: Record<string, unknown>) {
   window.dispatchEvent(new CustomEvent(eventName, { detail }));
 }
 
-function waitForResult(id: string): Promise<unknown> {
+function waitForResult(id: string): Promise<any> {
   return new Promise((resolve) => {
-    window.addEventListener(`pl-ext-result-${id}`, (e: Event) => resolve((e as CustomEvent<unknown>).detail), { once: true });
+    window.addEventListener(
+      `pl-ext-result-${id}`,
+      (e: Event) => resolve((e as CustomEvent<unknown>).detail),
+      { once: true },
+    );
   });
 }
 
@@ -126,7 +130,11 @@ describe("pl-ext-sync-entries", () => {
     (window as any).projectionlabPluginAPI = undefined;
 
     const result = waitForResult("sync-3");
-    dispatch("pl-ext-sync-entries", { id: "sync-3", entries: [], apiKey: "key" });
+    dispatch("pl-ext-sync-entries", {
+      id: "sync-3",
+      entries: [],
+      apiKey: "key",
+    });
     expect((await result).error).toMatch(/not found/i);
   });
 });

@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
-import { PLUGINS, lastSyncedKey, lastRefreshedKey } from "~/plugins";
+import { PLUGINS, lastSyncedKey, lastRefreshedKey, plApiKey } from "~/plugins";
 import SourcePanel from "./SourcePanel";
+import SettingsPanel from "./SettingsPanel";
 import Sidebar from "./components/Sidebar";
-import type { PlAccount } from "./types";
+import type { PlAccount } from "~/types";
 
 export default function Popup() {
   const [activeId, setActiveId] = useState(PLUGINS[0].id);
+  const [view, setView] = useState<"main" | "settings">("main");
+  const [hasApiKey, setHasApiKey] = useState(false);
   const [plAccounts, setPlAccounts] = useState<PlAccount[]>([]);
   const [plLoading, setPlLoading] = useState(false);
+  const [plError, setPlError] = useState<string | null>(null);
   const [lastSynced, setLastSynced] = useState<Record<string, number>>({});
   const [lastRefreshed, setLastRefreshed] = useState<Record<string, number>>(
     {},
@@ -17,10 +21,12 @@ export default function Popup() {
   useEffect(() => {
     const keys = [
       "plAccounts",
+      plApiKey,
       ...PLUGINS.map((p) => lastSyncedKey(p.id)),
       ...PLUGINS.map((p) => lastRefreshedKey(p.id)),
     ];
     browser.storage.local.get(keys).then((storage) => {
+      setHasApiKey(!!storage[plApiKey]);
       setPlAccounts((storage.plAccounts as PlAccount[]) ?? []);
       const synced: Record<string, number> = {};
       const refreshed: Record<string, number> = {};
@@ -46,12 +52,15 @@ export default function Popup() {
 
   const handleRefreshPL = async () => {
     setPlLoading(true);
+    setPlError(null);
     const response = (await browser.runtime.sendMessage({
       type: "FETCH_PL_ACCOUNTS",
     })) as { accounts?: PlAccount[]; error?: string };
     if (response?.accounts) {
       setPlAccounts(response.accounts);
       await browser.storage.local.set({ plAccounts: response.accounts });
+    } else if (response?.error) {
+      setPlError(response.error);
     }
     setPlLoading(false);
   };
@@ -73,30 +82,51 @@ export default function Popup() {
         activeId={activeId}
         lastSynced={lastSynced}
         available={available}
-        onSelect={setActiveId}
+        settingsActive={view === "settings"}
+        hasApiKey={hasApiKey}
+        onSelect={(id) => {
+          setActiveId(id);
+          setView("main");
+          setPlError(null);
+        }}
+        onSettings={() => setView(view === "settings" ? "main" : "settings")}
       />
 
       <div className="flex flex-col flex-1 min-w-0">
-        <div className="h-[46px] flex items-center px-4 border-b border-gray-100 shrink-0">
-          <span className="font-semibold text-gray-800 text-sm">
-            {activePlugin.name}
-          </span>
-          <span className="mx-2 text-gray-300">→</span>
-          <span className="font-semibold text-gray-800 text-sm">
-            ProjectionLab
-          </span>
-        </div>
+        {view === "settings" ? (
+          <SettingsPanel
+            onKeyChange={setHasApiKey}
+            onDataCleared={() => {
+              setPlAccounts([]);
+              setLastSynced({});
+              setLastRefreshed({});
+            }}
+          />
+        ) : (
+          <>
+            <div className="h-11.5 flex items-center px-4 border-b border-gray-100 shrink-0">
+              <span className="font-semibold text-gray-800 text-sm">
+                {activePlugin.name}
+              </span>
+              <span className="mx-2 text-gray-300">→</span>
+              <span className="font-semibold text-gray-800 text-sm">
+                ProjectionLab
+              </span>
+            </div>
 
-        <SourcePanel
-          key={activeId}
-          plugin={activePlugin}
-          plAccounts={plAccounts}
-          plLoading={plLoading}
-          lastRefreshed={lastRefreshed[activeId] ?? null}
-          onRefreshPL={handleRefreshPL}
-          onSynced={() => handleSynced(activeId)}
-          onRefreshed={() => handleRefreshed(activeId)}
-        />
+            <SourcePanel
+              key={activeId}
+              plugin={activePlugin}
+              plAccounts={plAccounts}
+              plLoading={plLoading}
+              plError={plError}
+              lastRefreshed={lastRefreshed[activeId] ?? null}
+              onRefreshPL={handleRefreshPL}
+              onSynced={() => handleSynced(activeId)}
+              onRefreshed={() => handleRefreshed(activeId)}
+            />
+          </>
+        )}
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 {
-  "name": "wxt-react-starter",
-  "description": "manifest.json description",
+  "name": "projectionlab-account-sync",
+  "description": "Browser extension to sync brokerage account balances into ProjectionLab",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -13,6 +13,10 @@
     "zip:firefox": "wxt zip -b firefox",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
+    "mock-sites": "vite e2e/mock-sites --port 3000",
+    "build:e2e": "E2E=true wxt build",
+    "e2e": "npm run build:e2e && playwright test",
+    "e2e:ci": "CI=true npm run build:e2e && CI=true playwright test",
     "compile": "tsc --noEmit",
     "postinstall": "wxt prepare"
   },
@@ -23,6 +27,7 @@
     "tailwindcss": "^4.2.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/react": "^19.2.14",
@@ -30,6 +35,7 @@
     "@vitest/coverage-v8": "^4.1.4",
     "@wxt-dev/module-react": "^1.1.5",
     "jsdom": "^29.0.2",
+    "playwright": "^1.59.1",
     "typescript": "^5.9.3",
     "vitest": "^4.1.4",
     "wxt": "^0.20.22"
