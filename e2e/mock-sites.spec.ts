@@ -8,7 +8,7 @@ test.beforeEach(async ({ context }) => {
   let sw = context.serviceWorkers()[0];
   if (!sw) sw = await context.waitForEvent("serviceworker");
   await sw.evaluate(() =>
-    (chrome as any).storage.local.set({ plApiKey: "test-key" }),
+    (globalThis as any).chrome.storage.local.set({ plApiKey: "test-key" }),
   );
 });
 

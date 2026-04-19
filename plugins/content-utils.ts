@@ -3,7 +3,7 @@ export function parseMoney(value: string | null): number | null {
   return Number(value.replace(/[$,]/g, ""));
 }
 
-export function queryDeep(selector: string, root: Document | ShadowRoot = document): Element[] {
+export function queryDeep(selector: string, root: Document | ShadowRoot | Element = document): Element[] {
   const results: Element[] = [...root.querySelectorAll(selector)];
   for (const el of root.querySelectorAll("*")) {
     const shadow = (el as HTMLElement).shadowRoot;
