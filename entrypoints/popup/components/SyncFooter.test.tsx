@@ -8,14 +8,14 @@ describe("SyncFooter", () => {
     expect(screen.getByText("2 of 3 mapped")).toBeInTheDocument();
   });
 
-  it("shows PL open prompt when plAccountsLoaded is false", () => {
+  it("shows 'Load PL accounts in Settings' prompt when plAccountsLoaded is false", () => {
     render(<SyncFooter mappedCount={0} totalCount={2} plAccountsLoaded={false} plSync={{ status: "idle" }} onSync={vi.fn()} />);
-    expect(screen.getByText(/Open ProjectionLab/)).toBeInTheDocument();
+    expect(screen.getByText(/Load PL accounts in Settings/)).toBeInTheDocument();
   });
 
-  it("hides PL open prompt when plAccountsLoaded is true", () => {
+  it("hides PL load prompt when plAccountsLoaded is true", () => {
     render(<SyncFooter mappedCount={1} totalCount={1} plAccountsLoaded={true} plSync={{ status: "idle" }} onSync={vi.fn()} />);
-    expect(screen.queryByText(/Open ProjectionLab/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Load PL accounts in Settings/)).not.toBeInTheDocument();
   });
 
   it("enables sync button when mappedCount > 0 and not syncing", () => {

@@ -5,6 +5,7 @@ import {
   lastRefreshedKey,
   credsKey,
   plApiKey,
+  plLastRefreshedKey,
 } from "~/plugins";
 import SourcePanel from "./SourcePanel";
 import SettingsPanel from "./SettingsPanel";
@@ -18,6 +19,7 @@ export default function Popup() {
   const [plAccounts, setPlAccounts] = useState<PlAccount[]>([]);
   const [plLoading, setPlLoading] = useState(false);
   const [plError, setPlError] = useState<string | null>(null);
+  const [plLastRefreshed, setPlLastRefreshed] = useState<number | null>(null);
   const [lastSynced, setLastSynced] = useState<Record<string, number>>({});
   const [lastRefreshed, setLastRefreshed] = useState<Record<string, number>>(
     {},
@@ -28,12 +30,14 @@ export default function Popup() {
     const keys = [
       "plAccounts",
       plApiKey,
+      plLastRefreshedKey,
       ...PLUGINS.map((p) => lastSyncedKey(p.id)),
       ...PLUGINS.map((p) => lastRefreshedKey(p.id)),
     ];
     browser.storage.local.get(keys).then((storage) => {
       setHasApiKey(!!storage[plApiKey]);
       setPlAccounts((storage.plAccounts as PlAccount[]) ?? []);
+      setPlLastRefreshed((storage[plLastRefreshedKey] as number) ?? null);
       const synced: Record<string, number> = {};
       const refreshed: Record<string, number> = {};
       for (const p of PLUGINS) {
@@ -70,8 +74,13 @@ export default function Popup() {
       type: "FETCH_PL_ACCOUNTS",
     })) as { accounts?: PlAccount[]; error?: string };
     if (response?.accounts) {
+      const ts = Date.now();
       setPlAccounts(response.accounts);
-      await browser.storage.local.set({ plAccounts: response.accounts });
+      setPlLastRefreshed(ts);
+      await browser.storage.local.set({
+        plAccounts: response.accounts,
+        [plLastRefreshedKey]: ts,
+      });
     } else if (response?.error) {
       setPlError(response.error);
     }
@@ -100,7 +109,6 @@ export default function Popup() {
         onSelect={(id) => {
           setActiveId(id);
           setView("main");
-          setPlError(null);
         }}
         onSettings={() => setView(view === "settings" ? "main" : "settings")}
       />
@@ -116,7 +124,13 @@ export default function Popup() {
               setPlAccounts([]);
               setLastSynced({});
               setLastRefreshed({});
+              setPlLastRefreshed(null);
             }}
+            plAccounts={plAccounts}
+            plLoading={plLoading}
+            plError={plError}
+            plLastRefreshed={plLastRefreshed}
+            onRefreshPL={handleRefreshPL}
           />
         ) : (
           <>
@@ -134,10 +148,7 @@ export default function Popup() {
               key={activeId}
               plugin={activePlugin}
               plAccounts={plAccounts}
-              plLoading={plLoading}
-              plError={plError}
               lastRefreshed={lastRefreshed[activeId] ?? null}
-              onRefreshPL={handleRefreshPL}
               onSynced={() => handleSynced(activeId)}
               onRefreshed={() => handleRefreshed(activeId)}
             />

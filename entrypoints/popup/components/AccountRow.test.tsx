@@ -86,7 +86,7 @@ describe("AccountRow", () => {
       />,
     );
     expect(
-      screen.getByRole("option", { name: "↻ Load PL accounts" }),
+      screen.getByRole("option", { name: "Load in Settings" }),
     ).toBeInTheDocument();
   });
 

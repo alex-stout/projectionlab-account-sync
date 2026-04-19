@@ -7,15 +7,17 @@ describe("PanelHeader", () => {
     pluginName: "Vanguard",
     loading: false,
     lastRefreshed: null,
-    plLoading: false,
     onRefreshSource: vi.fn(),
-    onRefreshPL: vi.fn(),
   };
 
-  it("renders both refresh buttons", () => {
+  it("renders the source refresh button", () => {
     render(<PanelHeader {...defaults} />);
     expect(screen.getByText("↻ Vanguard")).toBeInTheDocument();
-    expect(screen.getByText("↻ ProjectionLab")).toBeInTheDocument();
+  });
+
+  it("does not render a ProjectionLab refresh button", () => {
+    render(<PanelHeader {...defaults} />);
+    expect(screen.queryByText("↻ ProjectionLab")).not.toBeInTheDocument();
   });
 
   it("shows Loading… on source button when loading", () => {
@@ -28,17 +30,6 @@ describe("PanelHeader", () => {
     render(<PanelHeader {...defaults} loading={true} />);
     const btn = screen.getByRole("button", { name: "Loading…" });
     expect(btn).toBeDisabled();
-  });
-
-  it("shows Loading… on PL button when plLoading", () => {
-    render(<PanelHeader {...defaults} plLoading={true} />);
-    expect(screen.getByText("Loading…")).toBeInTheDocument();
-    expect(screen.queryByText("↻ ProjectionLab")).not.toBeInTheDocument();
-  });
-
-  it("disables PL button when plLoading", () => {
-    render(<PanelHeader {...defaults} plLoading={true} />);
-    expect(screen.getByRole("button", { name: "Loading…" })).toBeDisabled();
   });
 
   it("shows lastRefreshed timestamp when provided", () => {
@@ -60,12 +51,5 @@ describe("PanelHeader", () => {
     render(<PanelHeader {...defaults} onRefreshSource={onRefreshSource} />);
     fireEvent.click(screen.getByText("↻ Vanguard"));
     expect(onRefreshSource).toHaveBeenCalledOnce();
-  });
-
-  it("calls onRefreshPL when PL button clicked", () => {
-    const onRefreshPL = vi.fn();
-    render(<PanelHeader {...defaults} onRefreshPL={onRefreshPL} />);
-    fireEvent.click(screen.getByText("↻ ProjectionLab"));
-    expect(onRefreshPL).toHaveBeenCalledOnce();
   });
 });

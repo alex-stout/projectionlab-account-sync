@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   PLUGINS,
   plApiKey,
+  plLastRefreshedKey,
   accountsKey,
   mappingsKey,
   lastSyncedKey,
@@ -9,11 +10,18 @@ import {
   credsKey,
   type ApiPlugin,
 } from "~/plugins";
+import type { PlAccount } from "~/types";
+import { timeAgo } from "./utils";
 
 type Props = {
   onKeyChange: (hasKey: boolean) => void;
   onCredsChange?: (pluginId: string, hasAllCreds: boolean) => void;
   onDataCleared?: () => void;
+  plAccounts: PlAccount[];
+  plLoading: boolean;
+  plError: string | null;
+  plLastRefreshed: number | null;
+  onRefreshPL: () => void;
 };
 
 const API_PLUGINS = PLUGINS.filter(
@@ -24,6 +32,11 @@ export default function SettingsPanel({
   onKeyChange,
   onCredsChange,
   onDataCleared,
+  plAccounts,
+  plLoading,
+  plError,
+  plLastRefreshed,
+  onRefreshPL,
 }: Props) {
   const [key, setKey] = useState("");
   const [saved, setSaved] = useState(false);
@@ -54,6 +67,7 @@ export default function SettingsPanel({
     const keys = [
       "plAccounts",
       plApiKey,
+      plLastRefreshedKey,
       ...PLUGINS.flatMap((p) => [
         accountsKey(p.id),
         mappingsKey(p.id),
@@ -106,6 +120,34 @@ export default function SettingsPanel({
           >
             Clear
           </button>
+        )}
+      </div>
+
+      <div className="border-t border-gray-100 pt-5 mb-6">
+        <p className="text-xs font-medium text-gray-600 mb-1">
+          ProjectionLab Accounts
+        </p>
+        <p className="text-[11px] text-gray-400 mb-3">
+          Shared across all plugins. Open ProjectionLab in a tab, then refresh.
+        </p>
+        <div className="flex items-center gap-3 mb-3">
+          <button
+            onClick={onRefreshPL}
+            disabled={plLoading}
+            className="text-xs text-indigo-600 hover:text-indigo-700 disabled:opacity-40 font-medium"
+          >
+            {plLoading ? "Loading…" : "↻ Refresh"}
+          </button>
+          <span className="text-[11px] text-gray-500">
+            {plAccounts.length > 0
+              ? `${plAccounts.length} loaded · ${timeAgo(plLastRefreshed)}`
+              : "Not loaded"}
+          </span>
+        </div>
+        {plError && (
+          <div className="text-[11px] text-red-600 bg-red-50 border border-red-100 rounded-md px-3 py-2">
+            {plError}
+          </div>
         )}
       </div>
 

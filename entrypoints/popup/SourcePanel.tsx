@@ -9,10 +9,7 @@ import SyncFooter from "./components/SyncFooter";
 type Props = {
   plugin: SourcePlugin;
   plAccounts: PlAccount[];
-  plLoading: boolean;
-  plError: string | null;
   lastRefreshed: number | null;
-  onRefreshPL: () => void;
   onSynced: () => void;
   onRefreshed: () => void;
 };
@@ -20,10 +17,7 @@ type Props = {
 export default function SourcePanel({
   plugin,
   plAccounts,
-  plLoading,
-  plError,
   lastRefreshed,
-  onRefreshPL,
   onSynced,
   onRefreshed,
 }: Props) {
@@ -108,16 +102,8 @@ export default function SourcePanel({
         pluginName={plugin.name}
         loading={loading}
         lastRefreshed={lastRefreshed}
-        plLoading={plLoading}
         onRefreshSource={handleRefreshSource}
-        onRefreshPL={onRefreshPL}
       />
-
-      {plError && (
-        <div className="mx-4 mt-2 text-xs text-red-600 bg-red-50 border border-red-100 rounded-md px-3 py-2">
-          {plError}
-        </div>
-      )}
 
       <AccountList
         plugin={plugin}
