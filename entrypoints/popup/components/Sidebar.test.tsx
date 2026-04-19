@@ -4,8 +4,8 @@ import Sidebar from "./Sidebar";
 import type { SourcePlugin } from "~/plugins";
 
 const plugins: SourcePlugin[] = [
-  { id: "vanguard", name: "Vanguard", icon: "/v.png", urlPatterns: ["https://vanguard.com/*"] },
-  { id: "alight", name: "Alight", icon: "/a.png", urlPatterns: ["https://alight.com/*"] },
+  { id: "vanguard", name: "Vanguard", icon: "/v.png", kind: "content", urlPatterns: ["https://vanguard.com/*"] },
+  { id: "alight", name: "Alight", icon: "/a.png", kind: "content", urlPatterns: ["https://alight.com/*"] },
 ];
 
 const defaultProps = {

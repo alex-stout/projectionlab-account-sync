@@ -18,9 +18,18 @@ npm run e2e               # build + Playwright e2e tests
 
 ## Adding a plugin
 
-Plugins live in `plugins/<id>/`. Follow these steps using an existing plugin (e.g. `plugins/vanguard/`) as a reference.
+Plugins live in `plugins/<id>/` and come in two flavors, distinguished by the `kind` field on the plugin metadata:
 
-### 1. Create the plugin directory
+- **Content plugins** (`kind: "content"`) scrape balances from a page the user has open in their browser. Use these when the institution has no public API. See `plugins/vanguard/` as a reference.
+- **API plugins** (`kind: "api"`) fetch balances directly from a remote API using credentials the user enters in Settings. Use these when an API is available. See `plugins/ynab/` as a reference.
+
+Pick the section below that matches your case.
+
+---
+
+### Adding a content plugin
+
+#### 1. Create the plugin directory
 
 ```
 plugins/<id>/
@@ -32,7 +41,7 @@ plugins/<id>/
     index.html      # minimal HTML that mimics the real site's account DOM
 ```
 
-### 2. Define plugin metadata (`index.ts`)
+#### 2. Define plugin metadata (`index.ts`)
 
 ```ts
 import icon from "./icon.svg";
@@ -42,6 +51,7 @@ const plugin: SourcePlugin = {
   id: "mybroker",
   name: "My Broker",
   icon,
+  kind: "content",
   urlPatterns: [
     "https://www.mybroker.com/accounts/*",
     ...(__E2E__ ? ["http://localhost:3000/mybroker/*"] : []),
@@ -53,7 +63,7 @@ export default plugin;
 
 The E2E conditional adds the mock-site URL only in test builds.
 
-### 3. Write the DOM scraper (`content.ts`)
+#### 3. Write the DOM scraper (`content.ts`)
 
 ```ts
 import mybroker from "./index";
@@ -75,7 +85,7 @@ export const main = createMain(mybroker.id, extractPortfolio);
 
 `parseMoney` strips `$` and `,` and returns a number. `queryDeep` recursively searches shadow DOM. `createMain` wires up the background message listener.
 
-### 4. Create the mock site (`mock-site/index.html`)
+#### 4. Create the mock site (`mock-site/index.html`)
 
 The mock site must reproduce just the CSS selectors your scraper targets, with fake dollar amounts in the $1–2k range:
 
@@ -95,14 +105,14 @@ The mock site must reproduce just the CSS selectors your scraper targets, with f
 </html>
 ```
 
-### 5. Register the plugin
+#### 5. Register the plugin
 
 **`plugins/index.ts`** — add the import and include it in `PLUGINS`:
 
 ```ts
 import mybroker from "./mybroker";
 
-export const PLUGINS: SourcePlugin[] = [vanguard, alight, mybroker];
+export const PLUGINS: SourcePlugin[] = [vanguard, alight, ynab, mybroker];
 ```
 
 **`entrypoints/plugin.content.ts`** — add the content handler:
@@ -117,7 +127,7 @@ const handlers: Record<string, () => void> = {
 };
 ```
 
-### 6. Register the mock site for e2e tests
+#### 6. Register the mock site for e2e tests
 
 **`e2e/mock-sites/vite.config.ts`** — add the route and build input:
 
@@ -132,7 +142,7 @@ const mockSiteRoutes: Record<string, string> = {
 mybroker: resolve(projectRoot, "plugins/mybroker/mock-site/index.html"),
 ```
 
-### 7. Write e2e tests
+#### 7. Write e2e tests
 
 Add cases to `e2e/mock-sites.spec.ts` following the existing pattern:
 
@@ -152,6 +162,96 @@ test("refreshes My Broker accounts from mock tab", async ({
   });
 });
 ```
+
+---
+
+### Adding an API plugin
+
+API plugins don't need a content script or mock site — the background service worker calls `refresh()` directly with the user's stored credentials.
+
+#### 1. Create the plugin directory
+
+```
+plugins/<id>/
+  index.ts          # plugin metadata + refresh()
+  index.test.ts     # unit tests (mock fetch)
+  icon.svg          # or icon.png
+```
+
+#### 2. Define plugin metadata and `refresh()` (`index.ts`)
+
+```ts
+import icon from "./icon.svg";
+import type { Account } from "~/types";
+import type { SourcePlugin } from "../index";
+
+export async function refresh(
+  creds: Record<string, string>,
+): Promise<Account[]> {
+  const token = creds.accessToken?.trim();
+  if (!token) throw new Error("Access token is not set.");
+
+  const res = await fetch("https://api.mybroker.com/accounts", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (res.status === 401) {
+    throw new Error("MyBroker rejected the token. Check that it's valid.");
+  }
+  if (!res.ok) {
+    throw new Error(`MyBroker API error: ${res.status} ${res.statusText}`);
+  }
+
+  const data = await res.json();
+  return data.accounts.map((a: any) => ({
+    name: a.name,
+    balance: a.balance,
+    rateOfReturn: null,
+    accountId: a.id,
+  }));
+}
+
+const plugin: SourcePlugin = {
+  id: "mybroker",
+  name: "My Broker",
+  icon,
+  kind: "api",
+  hint: "Add your MyBroker API token in Settings, then click ↻ My Broker.",
+  credentials: [
+    {
+      key: "accessToken",
+      label: "Personal Access Token",
+      type: "password",
+      help: "Generate one in MyBroker → Settings → Developer.",
+    },
+  ],
+  refresh,
+};
+
+export default plugin;
+```
+
+Each entry in `credentials` becomes an input field in the extension's Settings panel automatically — no UI code needed. The background worker loads the saved values from `chrome.storage.local` and passes them to `refresh()`.
+
+#### 3. Write unit tests (`index.test.ts`)
+
+Mock `global.fetch` and cover the branches that matter: missing/empty token, 401, other non-OK status, and successful parsing. See `plugins/ynab/index.test.ts` for a full example.
+
+#### 4. Register the plugin
+
+**`plugins/index.ts`** — add the import and include it in `PLUGINS`:
+
+```ts
+import mybroker from "./mybroker";
+
+export const PLUGINS: SourcePlugin[] = [vanguard, alight, ynab, mybroker];
+```
+
+That's it — no content-script handler, no mock site, no `plugin.content.ts` changes. The background worker auto-detects `kind: "api"` and calls `refresh()` when the user clicks the refresh button.
+
+#### 5. Write e2e tests
+
+Use Playwright's `context.route()` to intercept the API call in the service worker and return a canned response. See the YNAB cases in `e2e/` for the pattern.
 
 ## Commit conventions
 

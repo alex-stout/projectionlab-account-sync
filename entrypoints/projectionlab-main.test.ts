@@ -137,4 +137,17 @@ describe("pl-ext-sync-entries", () => {
     });
     expect((await result).error).toMatch(/not found/i);
   });
+
+  it("stringifies non-Error rejections in sync results", async () => {
+    mockApi.updateAccount.mockRejectedValueOnce("raw-string-rejection");
+    const entries = [{ plId: "acc-1", balance: 100, name: "Failing" }];
+
+    const result = waitForResult("sync-4");
+    dispatch("pl-ext-sync-entries", { id: "sync-4", entries, apiKey: "key" });
+    const { results } = await result;
+
+    expect(results).toEqual([
+      { name: "Failing", ok: false, error: "raw-string-rejection" },
+    ]);
+  });
 });

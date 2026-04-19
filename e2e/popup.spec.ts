@@ -1,6 +1,9 @@
 import { test, expect } from "./fixtures";
 
-test.beforeEach(async ({ page, popupBaseUrl }) => {
+test.beforeEach(async ({ page, popupBaseUrl, context }) => {
+  let sw = context.serviceWorkers()[0];
+  if (!sw) sw = await context.waitForEvent("serviceworker");
+  await sw.evaluate(() => (globalThis as any).chrome.storage.local.clear());
   await page.goto(`${popupBaseUrl}/popup.html`);
 });
 
@@ -64,7 +67,10 @@ test("settings panel has disabled Save button when input is empty", async ({
   page,
 }) => {
   await page.getByTitle("Settings").click();
-  await expect(page.getByRole("button", { name: "Save" })).toBeDisabled();
+  // PL Save = [0], YNAB Save = [1]. Both disabled initially.
+  await expect(
+    page.getByRole("button", { name: /^Save$/ }).first(),
+  ).toBeDisabled();
 });
 
 test("clicking gear again returns to main view", async ({ page }) => {
@@ -119,12 +125,13 @@ test("Clear All Data removes the API key and all plugin data", async ({ page, co
   let sw = context.serviceWorkers()[0];
   if (!sw) sw = await context.waitForEvent("serviceworker");
 
-  // Seed an API key and fake Vanguard accounts directly in storage
+  // Seed PL key, Vanguard accounts, AND YNAB creds so we can prove they all get removed.
   await sw.evaluate(() =>
     (globalThis as any).chrome.storage.local.set({
       plApiKey: "test-api-key",
       accounts_vanguard: [{ name: "Roth IRA", balance: 1200 }],
       mappings_vanguard: { "Roth IRA": "pl-roth-ira" },
+      creds_ynab: { accessToken: "ynab-tok" },
     }),
   );
 
@@ -135,14 +142,90 @@ test("Clear All Data removes the API key and all plugin data", async ({ page, co
   // Open settings and clear all data
   await page.getByTitle("Settings").click();
   await expect(page.getByPlaceholder(/paste your api key/i)).toHaveValue("test-api-key");
+  // The second password input is the YNAB token — verify it's pre-filled before clearing.
+  const ynabToken = page.locator('input[type="password"]').nth(1);
+  await expect(ynabToken).toHaveValue("ynab-tok");
+
   await page.getByRole("button", { name: "Clear All Data" }).click();
   await expect(page.getByRole("button", { name: "✓ Cleared" })).toBeVisible();
 
-  // API key input is empty and amber dot is back
+  // Both inputs are empty and amber dot is back
   await expect(page.getByPlaceholder(/paste your api key/i)).toHaveValue("");
+  await expect(page.locator('input[type="password"]').nth(1)).toHaveValue("");
   await expect(page.getByTitle("Settings").locator(".bg-amber-400")).toBeVisible();
 
-  // Storage is actually empty for both key and plugin data
+  // Storage is actually empty for keys, plugin data, AND YNAB creds
+  const stored = await sw.evaluate(() =>
+    (globalThis as any).chrome.storage.local.get([
+      "plApiKey",
+      "accounts_vanguard",
+      "mappings_vanguard",
+      "creds_ynab",
+    ]),
+  );
+  expect(stored.plApiKey).toBeUndefined();
+  expect(stored.accounts_vanguard).toBeUndefined();
+  expect(stored.mappings_vanguard).toBeUndefined();
+  expect(stored.creds_ynab).toBeUndefined();
+
+  // Plugin tab shows empty state
+  await page.getByTitle("Settings").click(); // navigate back to plugin view
+  await page.getByTitle("Vanguard").click();
+  await expect(page.getByRole("button", { name: /↻ Vanguard/ })).toBeVisible();
+
+  // YNAB availability dot should be off because creds were cleared
+  await expect(page.getByTitle("YNAB").locator(".bg-green-400")).toBeHidden();
+});
+
+test("saving an API key shows Saved feedback", async ({ page }) => {
+  await page.getByTitle("Settings").click();
+  await page.getByPlaceholder(/paste your api key/i).fill("test-api-key");
+  await page.getByRole("button", { name: /^Save$/ }).first().click();
+  await expect(page.getByRole("button", { name: /✓ Saved/ })).toBeVisible();
+});
+
+test("amber dot disappears after API key is saved", async ({ page }) => {
+  await page.getByTitle("Settings").click();
+  await page.getByPlaceholder(/paste your api key/i).fill("test-api-key");
+  await page.getByRole("button", { name: /^Save$/ }).first().click();
+  await expect(
+    page.getByTitle("Settings").locator(".bg-amber-400"),
+  ).toBeHidden();
+});
+
+test("PL key Clear button removes the key but preserves plugin data", async ({
+  page,
+  context,
+}) => {
+  let sw = context.serviceWorkers()[0];
+  if (!sw) sw = await context.waitForEvent("serviceworker");
+
+  const seededAccounts = [
+    { name: "Roth IRA", balance: 1200, rateOfReturn: null, accountId: null },
+  ];
+  await sw.evaluate(
+    (accounts) =>
+      (globalThis as any).chrome.storage.local.set({
+        plApiKey: "test-api-key",
+        accounts_vanguard: accounts,
+        mappings_vanguard: { "Roth IRA": "pl-roth-ira" },
+      }),
+    seededAccounts,
+  );
+
+  await page.reload();
+  await page.getByTitle("Settings").click();
+  await expect(page.getByPlaceholder(/paste your api key/i)).toHaveValue(
+    "test-api-key",
+  );
+
+  await page.getByRole("button", { name: "Clear", exact: true }).click();
+
+  await expect(page.getByPlaceholder(/paste your api key/i)).toHaveValue("");
+  await expect(
+    page.getByTitle("Settings").locator(".bg-amber-400"),
+  ).toBeVisible();
+
   const stored = await sw.evaluate(() =>
     (globalThis as any).chrome.storage.local.get([
       "plApiKey",
@@ -151,27 +234,6 @@ test("Clear All Data removes the API key and all plugin data", async ({ page, co
     ]),
   );
   expect(stored.plApiKey).toBeUndefined();
-  expect(stored.accounts_vanguard).toBeUndefined();
-  expect(stored.mappings_vanguard).toBeUndefined();
-
-  // Plugin tab shows empty state
-  await page.getByTitle("Settings").click(); // navigate back to plugin view
-  await page.getByTitle("Vanguard").click();
-  await expect(page.getByRole("button", { name: /↻ Vanguard/ })).toBeVisible();
-});
-
-test("saving an API key shows Saved feedback", async ({ page }) => {
-  await page.getByTitle("Settings").click();
-  await page.getByPlaceholder(/paste your api key/i).fill("test-api-key");
-  await page.getByRole("button", { name: "Save" }).click();
-  await expect(page.getByRole("button", { name: /✓ Saved/ })).toBeVisible();
-});
-
-test("amber dot disappears after API key is saved", async ({ page }) => {
-  await page.getByTitle("Settings").click();
-  await page.getByPlaceholder(/paste your api key/i).fill("test-api-key");
-  await page.getByRole("button", { name: "Save" }).click();
-  await expect(
-    page.getByTitle("Settings").locator(".bg-amber-400"),
-  ).toBeHidden();
+  expect(stored.accounts_vanguard).toEqual(seededAccounts);
+  expect(stored.mappings_vanguard).toEqual({ "Roth IRA": "pl-roth-ira" });
 });

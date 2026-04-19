@@ -60,6 +60,24 @@ jobs:
           output: both
           badge: true
 
+  firefox-lint:
+    name: Firefox manifest lint
+    needs: compile
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('package-lock.json') }}
+      - run: npm run postinstall
+      - run: npm run lint:firefox
+
   e2e:
     name: E2E tests
     needs: unit

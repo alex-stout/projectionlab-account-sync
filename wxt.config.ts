@@ -8,7 +8,7 @@ export default defineConfig({
   manifest: {
     name: "ProjectionLab Account Sync",
     version: "0.1.0",
-    permissions: ["storage", "tabs", "activeTab", "scripting"],
+    permissions: ["storage", "tabs", "activeTab"],
     browser_specific_settings: {
       gecko: {
         id: "projectionlab-account-sync@extension",
@@ -32,6 +32,7 @@ export default defineConfig({
       "https://app.projectionlab.com/*",
       "https://ea.projectionlab.com/*",
       "https://dashboard.web.vanguard.com/*",
+      "https://api.ynab.com/*",
       ...(isE2E ? ["http://localhost:3000/*"] : []),
     ],
   },

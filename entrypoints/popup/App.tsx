@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { PLUGINS, lastSyncedKey, lastRefreshedKey, plApiKey } from "~/plugins";
+import {
+  PLUGINS,
+  lastSyncedKey,
+  lastRefreshedKey,
+  credsKey,
+  plApiKey,
+} from "~/plugins";
 import SourcePanel from "./SourcePanel";
 import SettingsPanel from "./SettingsPanel";
 import Sidebar from "./components/Sidebar";
@@ -42,6 +48,13 @@ export default function Popup() {
 
     Promise.all(
       PLUGINS.map(async (p) => {
+        if (p.kind === "api") {
+          const stored = await browser.storage.local.get(credsKey(p.id));
+          const creds =
+            (stored[credsKey(p.id)] as Record<string, string>) ?? {};
+          const hasAll = p.credentials.every((f) => !!creds[f.key]?.trim());
+          return [p.id, hasAll] as const;
+        }
         const tabs = await Promise.all(
           p.urlPatterns.map((url) => browser.tabs.query({ url })),
         );
@@ -96,6 +109,9 @@ export default function Popup() {
         {view === "settings" ? (
           <SettingsPanel
             onKeyChange={setHasApiKey}
+            onCredsChange={(pluginId, hasAllCreds) =>
+              setAvailable((prev) => ({ ...prev, [pluginId]: hasAllCreds }))
+            }
             onDataCleared={() => {
               setPlAccounts([]);
               setLastSynced({});

@@ -35,6 +35,7 @@ export function createMain(
             }
             return { ok: true, payload };
           });
+          /* v8 ignore next -- Firefox-only return path; covered by firefox-lint + E2E. */
           if (import.meta.env.BROWSER === "firefox") return p as any;
           p.then(sendResponse);
           return true;

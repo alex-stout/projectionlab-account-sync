@@ -8,6 +8,7 @@ const plugin: SourcePlugin = {
   id: "vanguard",
   name: "Vanguard",
   icon: "/v.png",
+  kind: "content",
   urlPatterns: ["https://vanguard.com/*"],
 };
 

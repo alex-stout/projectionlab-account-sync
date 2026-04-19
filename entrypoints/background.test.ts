@@ -127,6 +127,71 @@ describe("SYNC_SOURCE", () => {
   });
 });
 
+describe("SYNC_SOURCE (api plugin)", () => {
+  it("returns error when credentials are missing", async () => {
+    vi.mocked(browser.storage.local.get).mockResolvedValue({} as any);
+    const result = await call({ type: "SYNC_SOURCE", sourceId: "ynab" });
+    expect(result.error).toMatch(/credentials/i);
+  });
+
+  it("calls plugin.refresh with creds and writes accounts on success", async () => {
+    const ynabAccounts = [
+      { id: "a-1", name: "Checking", balance: 1_234_000, closed: false, deleted: false },
+    ];
+    vi.mocked(browser.storage.local.get).mockResolvedValue({
+      creds_ynab: { accessToken: "tok-123" },
+    } as any);
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ data: { accounts: ynabAccounts } }),
+    }) as any;
+
+    const result = await call({ type: "SYNC_SOURCE", sourceId: "ynab" });
+    expect(global.fetch).toHaveBeenCalledWith(
+      "https://api.ynab.com/v1/budgets/last-used/accounts",
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: "Bearer tok-123" }),
+      }),
+    );
+    expect(result.ok).toBe(true);
+    expect(result.accounts).toEqual([
+      { name: "Checking", balance: 1234, rateOfReturn: null, accountId: "a-1" },
+    ]);
+    expect(browser.storage.local.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        accounts_ynab: result.accounts,
+        lastRefreshed_ynab: expect.any(Number),
+      }),
+    );
+  });
+
+  it("returns error message when refresh throws", async () => {
+    vi.mocked(browser.storage.local.get).mockResolvedValue({
+      creds_ynab: { accessToken: "bad-tok" },
+    } as any);
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      statusText: "Unauthorized",
+    }) as any;
+
+    const result = await call({ type: "SYNC_SOURCE", sourceId: "ynab" });
+    expect(result.error).toMatch(/rejected the access token/i);
+  });
+
+  it("returns a generic error when refresh throws a non-Error value", async () => {
+    vi.mocked(browser.storage.local.get).mockResolvedValue({
+      creds_ynab: { accessToken: "tok" },
+    } as any);
+    // A string rejection triggers the `e instanceof Error ? ... : ...` false branch.
+    global.fetch = vi.fn().mockRejectedValue("network-down") as any;
+
+    const result = await call({ type: "SYNC_SOURCE", sourceId: "ynab" });
+    expect(result.error).toMatch(/failed to fetch from ynab/i);
+  });
+});
+
 describe("FETCH_PL_ACCOUNTS", () => {
   it("returns error when no API key is set", async () => {
     vi.mocked(browser.storage.local.get).mockResolvedValue({} as any);

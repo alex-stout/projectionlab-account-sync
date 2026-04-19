@@ -7,6 +7,7 @@ const plugin: SourcePlugin = {
   id: "vanguard",
   name: "Vanguard",
   icon: "/v.png",
+  kind: "content",
   urlPatterns: ["https://vanguard.com/*"],
 };
 
@@ -76,11 +77,53 @@ describe("SourcePanel", () => {
     expect(screen.getByText("Tab not open")).toBeInTheDocument();
   });
 
+  it("shows the thrown error message when sendMessage rejects with an Error", async () => {
+    vi.mocked(browser.runtime.sendMessage).mockRejectedValue(
+      new Error("Extension port disconnected"),
+    );
+    render(<SourcePanel {...defaults} />);
+    await act(async () => { fireEvent.click(getRefreshSourceBtn()); });
+    expect(screen.getByText("Extension port disconnected")).toBeInTheDocument();
+    expect(screen.queryByText("Loading…")).not.toBeInTheDocument();
+  });
+
+  it("shows a generic error when sendMessage rejects with a non-Error value", async () => {
+    vi.mocked(browser.runtime.sendMessage).mockRejectedValue("string-rejection");
+    render(<SourcePanel {...defaults} />);
+    await act(async () => { fireEvent.click(getRefreshSourceBtn()); });
+    expect(screen.getByText(/failed to communicate/i)).toBeInTheDocument();
+  });
+
+  it("falls back to a 'not open' message when SYNC_SOURCE response is nullish", async () => {
+    vi.mocked(browser.runtime.sendMessage).mockResolvedValue(null as any);
+    render(<SourcePanel {...defaults} />);
+    await act(async () => { fireEvent.click(getRefreshSourceBtn()); });
+    expect(screen.getByText(/vanguard is not open/i)).toBeInTheDocument();
+  });
+
   it("shows plError banner when plError is set", async () => {
     render(<SourcePanel {...defaults} plError="No API key set. Open extension settings to add your ProjectionLab API key." />);
     await waitFor(() =>
       expect(screen.getByText(/no api key set/i)).toBeInTheDocument()
     );
+  });
+
+  it("shows sourceError AND plError simultaneously", async () => {
+    vi.mocked(browser.runtime.sendMessage).mockResolvedValue({
+      error: "Vanguard is not open.",
+    } as any);
+    render(
+      <SourcePanel
+        {...defaults}
+        plError="No API key set. Open extension settings to add your ProjectionLab API key."
+      />,
+    );
+    await act(async () => { fireEvent.click(getRefreshSourceBtn()); });
+    // Both messages are visible — neither suppresses the other.
+    await waitFor(() =>
+      expect(screen.getByText(/no api key set/i)).toBeInTheDocument(),
+    );
+    expect(screen.getByText("Vanguard is not open.")).toBeInTheDocument();
   });
 
   it("does not show plError banner when plError is null", async () => {
@@ -142,6 +185,19 @@ describe("SourcePanel", () => {
     expect(screen.getByText("✓")).toBeInTheDocument();
   });
 
+  it("falls back to empty results when sync response has no results field", async () => {
+    vi.mocked(browser.storage.local.get).mockResolvedValue({
+      accounts_vanguard: accounts,
+      mappings_vanguard: { IRA: "pl-1" },
+    } as any);
+    vi.mocked(browser.runtime.sendMessage).mockResolvedValue({} as any);
+    const onSynced = vi.fn();
+    render(<SourcePanel {...defaults} plAccounts={plAccounts} onSynced={onSynced} />);
+    await waitFor(() => screen.getByText("Sync to ProjectionLab"));
+    await act(async () => { fireEvent.click(screen.getByText("Sync to ProjectionLab")); });
+    expect(onSynced).toHaveBeenCalledOnce();
+  });
+
   it("shows error state when sync returns error", async () => {
     vi.mocked(browser.storage.local.get).mockResolvedValue({
       accounts_vanguard: accounts,
@@ -165,7 +221,7 @@ describe("SourcePanel", () => {
     await act(async () => { fireEvent.click(screen.getByText("Sync to ProjectionLab")); });
     await waitFor(() => screen.getByText("PL not open"));
 
-    const alight: SourcePlugin = { id: "alight", name: "Alight", icon: "/a.png", urlPatterns: [] };
+    const alight: SourcePlugin = { id: "alight", name: "Alight", icon: "/a.png", kind: "content", urlPatterns: [] };
     vi.mocked(browser.storage.local.get).mockResolvedValue({} as any);
     rerender(<SourcePanel {...defaults} plugin={alight} key="alight" />);
     await waitFor(() => expect(screen.queryByText("PL not open")).not.toBeInTheDocument());

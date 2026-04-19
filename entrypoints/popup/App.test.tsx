@@ -157,7 +157,7 @@ describe("App", () => {
     fireEvent.change(screen.getByPlaceholderText(/paste your api key/i), {
       target: { value: "new-key" },
     });
-    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Save" })); });
+    await act(async () => { fireEvent.click(screen.getAllByRole("button", { name: /^Save$/ })[0]); });
     await waitFor(() => {
       const gear = screen.getByTitle("Settings");
       expect(gear.querySelector(".bg-amber-400")).not.toBeInTheDocument();
@@ -180,6 +180,76 @@ describe("App", () => {
     await waitFor(() => screen.getByText(/no api key set/i));
     await act(async () => { fireEvent.click(screen.getByTitle("Alight")); });
     expect(screen.queryByText(/no api key set/i)).not.toBeInTheDocument();
+  });
+
+  it("saving YNAB creds from Settings flips the sidebar availability dot", async () => {
+    render(<App />);
+    await waitFor(() => screen.getByTitle("Settings"));
+    await act(async () => { fireEvent.click(screen.getByTitle("Settings")); });
+
+    // YNAB token input is the second password input (first is the PL API key).
+    const ynabInput = screen.getAllByDisplayValue("")[0] as HTMLInputElement;
+    const section = screen.getByText(/YNAB Credentials/i).parentElement!;
+    const tokenInput = section.querySelector('input[type="password"]') as HTMLInputElement;
+    void ynabInput;
+
+    fireEvent.change(tokenInput, { target: { value: "tok-abc" } });
+    await act(async () => {
+      fireEvent.click(screen.getAllByRole("button", { name: /^Save$/ })[1]);
+    });
+
+    const ynabBtn = screen.getByTitle("YNAB");
+    await waitFor(() => expect(ynabBtn.querySelector(".bg-green-400")).toBeInTheDocument());
+  });
+
+  it("Clear All Data resets plAccounts, lastSynced, and lastRefreshed in the UI", async () => {
+    vi.mocked(browser.storage.local.get).mockImplementation((keys: any) => {
+      const arr: string[] = Array.isArray(keys) ? keys : [keys];
+      const result: any = {};
+      if (arr.includes("plAccounts"))
+        result.plAccounts = [{ id: "pl-1", name: "Retirement IRA" }];
+      if (arr.includes("lastSynced_vanguard")) result.lastSynced_vanguard = Date.now();
+      if (arr.includes("lastRefreshed_vanguard")) result.lastRefreshed_vanguard = Date.now();
+      if (arr.includes("plApiKey")) result.plApiKey = "test-key";
+      if (arr.includes("accounts_vanguard"))
+        result.accounts_vanguard = [
+          { name: "IRA", balance: 5000, rateOfReturn: null, accountId: null },
+        ];
+      return Promise.resolve(result);
+    });
+    render(<App />);
+    await waitFor(() =>
+      expect(screen.getByRole("option", { name: "Retirement IRA" })).toBeInTheDocument(),
+    );
+    // "just now" appears in sidebar (lastSynced) and panel (lastRefreshed)
+    await waitFor(() => expect(screen.getAllByText("just now").length).toBeGreaterThan(0));
+
+    await act(async () => { fireEvent.click(screen.getByTitle("Settings")); });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Clear All Data" }));
+    });
+    // Sidebar timestamps gone (settings view still shows Sidebar)
+    expect(screen.queryByText("just now")).not.toBeInTheDocument();
+
+    // Navigate back to main view → SourcePanel is rendered but plAccounts is empty
+    await act(async () => { fireEvent.click(screen.getByTitle("Vanguard")); });
+    expect(
+      screen.queryByRole("option", { name: "Retirement IRA" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("silently ignores FETCH_PL_ACCOUNTS responses with neither accounts nor error", async () => {
+    vi.mocked(browser.storage.local.get).mockResolvedValue({
+      plAccounts: [{ id: "pl-1", name: "Existing" }],
+      accounts_vanguard: sourceAccounts,
+    } as any);
+    vi.mocked(browser.runtime.sendMessage).mockResolvedValue({} as any);
+    render(<App />);
+    await waitFor(() => screen.getByRole("option", { name: "Existing" }));
+    await act(async () => { fireEvent.click(screen.getByText("↻ ProjectionLab")); });
+    // Existing accounts preserved, no error banner
+    expect(screen.getByRole("option", { name: "Existing" })).toBeInTheDocument();
+    expect(screen.queryByText(/no api key/i)).not.toBeInTheDocument();
   });
 
   it("does not update plAccounts when response has no accounts field", async () => {

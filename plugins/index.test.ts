@@ -13,7 +13,12 @@ describe("PLUGINS", () => {
       expect(plugin.id).toBeTruthy();
       expect(plugin.name).toBeTruthy();
       expect(plugin.icon).toBeTruthy();
-      expect(plugin.urlPatterns.length).toBeGreaterThan(0);
+      if (plugin.kind === "content") {
+        expect(plugin.urlPatterns.length).toBeGreaterThan(0);
+      } else {
+        expect(plugin.credentials.length).toBeGreaterThan(0);
+        expect(typeof plugin.refresh).toBe("function");
+      }
     }
   });
 });
