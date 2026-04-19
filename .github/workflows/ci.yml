@@ -46,7 +46,7 @@ jobs:
       - run: npm run postinstall
       - run: npm run test:coverage -- --run --reporter=default --reporter=github-actions
       - name: Coverage summary
-        uses: irongut/CodeCoverageSummary@v1.3.0
+        uses: irongut/CodeCoverageSummary@51cc3a756ddcd398d447c044c02cb6aa83fdae95 # v1.3.0
         with:
           filename: coverage/cobertura-coverage.xml
           format: markdown
