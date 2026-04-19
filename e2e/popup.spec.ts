@@ -1,9 +1,14 @@
 import { test, expect } from "./fixtures";
+import {
+  clearStorage,
+  getServiceWorker,
+  getStorage,
+  seedStorage,
+} from "./helpers";
 
 test.beforeEach(async ({ page, popupBaseUrl, context }) => {
-  let sw = context.serviceWorkers()[0];
-  if (!sw) sw = await context.waitForEvent("serviceworker");
-  await sw.evaluate(() => (globalThis as any).chrome.storage.local.clear());
+  const sw = await getServiceWorker(context);
+  await clearStorage(sw);
   await page.goto(`${popupBaseUrl}/popup.html`);
 });
 
@@ -116,18 +121,15 @@ test("amber dot on gear button when no API key is configured", async ({
 });
 
 test("Clear All Data removes the API key and all plugin data", async ({ page, context }) => {
-  let sw = context.serviceWorkers()[0];
-  if (!sw) sw = await context.waitForEvent("serviceworker");
+  const sw = await getServiceWorker(context);
 
   // Seed PL key, Vanguard accounts, AND YNAB creds so we can prove they all get removed.
-  await sw.evaluate(() =>
-    (globalThis as any).chrome.storage.local.set({
-      plApiKey: "test-api-key",
-      accounts_vanguard: [{ name: "Roth IRA", balance: 1200 }],
-      mappings_vanguard: { "Roth IRA": "pl-roth-ira" },
-      creds_ynab: { accessToken: "ynab-tok" },
-    }),
-  );
+  await seedStorage(sw, {
+    plApiKey: "test-api-key",
+    accounts_vanguard: [{ name: "Roth IRA", balance: 1200 }],
+    mappings_vanguard: { "Roth IRA": "pl-roth-ira" },
+    creds_ynab: { accessToken: "ynab-tok" },
+  });
 
   // Reload popup so it picks up the seeded data
   await page.reload();
@@ -149,14 +151,12 @@ test("Clear All Data removes the API key and all plugin data", async ({ page, co
   await expect(page.getByTitle("Settings").locator(".bg-amber-400")).toBeVisible();
 
   // Storage is actually empty for keys, plugin data, AND YNAB creds
-  const stored = await sw.evaluate(() =>
-    (globalThis as any).chrome.storage.local.get([
-      "plApiKey",
-      "accounts_vanguard",
-      "mappings_vanguard",
-      "creds_ynab",
-    ]),
-  );
+  const stored = await getStorage(sw, [
+    "plApiKey",
+    "accounts_vanguard",
+    "mappings_vanguard",
+    "creds_ynab",
+  ]);
   expect(stored.plApiKey).toBeUndefined();
   expect(stored.accounts_vanguard).toBeUndefined();
   expect(stored.mappings_vanguard).toBeUndefined();
@@ -191,21 +191,16 @@ test("PL key Clear button removes the key but preserves plugin data", async ({
   page,
   context,
 }) => {
-  let sw = context.serviceWorkers()[0];
-  if (!sw) sw = await context.waitForEvent("serviceworker");
+  const sw = await getServiceWorker(context);
 
   const seededAccounts = [
     { name: "Roth IRA", balance: 1200, rateOfReturn: null, accountId: null },
   ];
-  await sw.evaluate(
-    (accounts) =>
-      (globalThis as any).chrome.storage.local.set({
-        plApiKey: "test-api-key",
-        accounts_vanguard: accounts,
-        mappings_vanguard: { "Roth IRA": "pl-roth-ira" },
-      }),
-    seededAccounts,
-  );
+  await seedStorage(sw, {
+    plApiKey: "test-api-key",
+    accounts_vanguard: seededAccounts,
+    mappings_vanguard: { "Roth IRA": "pl-roth-ira" },
+  });
 
   await page.reload();
   await page.getByTitle("Settings").click();
@@ -220,13 +215,11 @@ test("PL key Clear button removes the key but preserves plugin data", async ({
     page.getByTitle("Settings").locator(".bg-amber-400"),
   ).toBeVisible();
 
-  const stored = await sw.evaluate(() =>
-    (globalThis as any).chrome.storage.local.get([
-      "plApiKey",
-      "accounts_vanguard",
-      "mappings_vanguard",
-    ]),
-  );
+  const stored = await getStorage(sw, [
+    "plApiKey",
+    "accounts_vanguard",
+    "mappings_vanguard",
+  ]);
   expect(stored.plApiKey).toBeUndefined();
   expect(stored.accounts_vanguard).toEqual(seededAccounts);
   expect(stored.mappings_vanguard).toEqual({ "Roth IRA": "pl-roth-ira" });

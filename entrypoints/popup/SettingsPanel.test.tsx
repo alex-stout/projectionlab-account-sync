@@ -173,6 +173,7 @@ describe("SettingsPanel", () => {
       expect.arrayContaining([
         "plAccounts",
         "plApiKey",
+        "plLastRefreshed",
         "accounts_vanguard",
         "mappings_vanguard",
         "lastSynced_vanguard",
@@ -208,6 +209,69 @@ describe("SettingsPanel", () => {
       fireEvent.click(screen.getByRole("button", { name: "Clear" }));
     });
     expect(screen.queryByRole("button", { name: "Clear" })).not.toBeInTheDocument();
+  });
+});
+
+describe("SettingsPanel — ProjectionLab Accounts section", () => {
+  it("shows 'Not loaded' and an enabled Refresh button when no PL accounts", () => {
+    render(<SettingsPanel {...plDefaults} onKeyChange={vi.fn()} />);
+    expect(screen.getByText("Not loaded")).toBeInTheDocument();
+    const refresh = screen.getByRole("button", { name: "↻ Refresh" });
+    expect(refresh).not.toBeDisabled();
+  });
+
+  it("shows 'N loaded · <time>' when plAccounts is populated", () => {
+    render(
+      <SettingsPanel
+        {...plDefaults}
+        plAccounts={[
+          { id: "pl-1", name: "IRA" },
+          { id: "pl-2", name: "Brokerage" },
+        ]}
+        plLastRefreshed={Date.now()}
+        onKeyChange={vi.fn()}
+      />,
+    );
+    expect(screen.getByText(/2 loaded · just now/)).toBeInTheDocument();
+    expect(screen.queryByText("Not loaded")).not.toBeInTheDocument();
+  });
+
+  it("shows 'Loading…' and disables the refresh button while plLoading", () => {
+    render(
+      <SettingsPanel {...plDefaults} plLoading={true} onKeyChange={vi.fn()} />,
+    );
+    const btn = screen.getByRole("button", { name: "Loading…" });
+    expect(btn).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "↻ Refresh" })).not.toBeInTheDocument();
+  });
+
+  it("calls onRefreshPL when the Refresh button is clicked", () => {
+    const onRefreshPL = vi.fn();
+    render(
+      <SettingsPanel
+        {...plDefaults}
+        onRefreshPL={onRefreshPL}
+        onKeyChange={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "↻ Refresh" }));
+    expect(onRefreshPL).toHaveBeenCalledOnce();
+  });
+
+  it("shows the plError banner when plError is set", () => {
+    render(
+      <SettingsPanel
+        {...plDefaults}
+        plError="No API key set"
+        onKeyChange={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("No API key set")).toBeInTheDocument();
+  });
+
+  it("does not render the plError banner when plError is null", () => {
+    render(<SettingsPanel {...plDefaults} onKeyChange={vi.fn()} />);
+    expect(screen.queryByText(/no api key/i)).not.toBeInTheDocument();
   });
 });
 
