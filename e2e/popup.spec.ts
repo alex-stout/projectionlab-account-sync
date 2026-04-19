@@ -187,6 +187,93 @@ test("amber dot disappears after API key is saved", async ({ page }) => {
   ).toBeHidden();
 });
 
+test("disabling a plugin hides it from the sidebar and persists to storage", async ({
+  page,
+  context,
+}) => {
+  const sw = await getServiceWorker(context);
+
+  await expect(page.getByTitle("Alight")).toBeVisible();
+  await page.getByTitle("Settings").click();
+  await page
+    .locator('label:has(input[aria-label="Enable Alight"])')
+    .click();
+
+  await expect(page.getByTitle("Alight")).toBeHidden();
+
+  const stored = await getStorage(sw, ["disabledPlugins"]);
+  expect(stored.disabledPlugins).toEqual(["alight"]);
+
+  await page.reload();
+  await expect(page.getByTitle("Vanguard")).toBeVisible();
+  await expect(page.getByTitle("Alight")).toBeHidden();
+});
+
+test("re-enabling a disabled plugin brings it back to the sidebar", async ({
+  page,
+  context,
+}) => {
+  const sw = await getServiceWorker(context);
+  await seedStorage(sw, { disabledPlugins: ["ynab"] });
+  await page.reload();
+
+  await expect(page.getByTitle("YNAB")).toBeHidden();
+  await page.getByTitle("Settings").click();
+  await page
+    .locator('label:has(input[aria-label="Enable YNAB"])')
+    .click();
+
+  await expect(page.getByTitle("YNAB")).toBeVisible();
+  const stored = await getStorage(sw, ["disabledPlugins"]);
+  expect(stored.disabledPlugins).toEqual([]);
+});
+
+test("disabling an API plugin hides its credentials section", async ({
+  page,
+}) => {
+  await page.getByTitle("Settings").click();
+  await expect(page.getByText(/YNAB Credentials/i)).toBeVisible();
+
+  await page
+    .locator('label:has(input[aria-label="Enable YNAB"])')
+    .click();
+  await expect(page.getByText(/YNAB Credentials/i)).toBeHidden();
+});
+
+test("disabling all plugins forces the settings view", async ({ page }) => {
+  await page.getByTitle("Settings").click();
+  await page
+    .locator('label:has(input[aria-label="Enable Vanguard"])')
+    .click();
+  await page
+    .locator('label:has(input[aria-label="Enable Alight"])')
+    .click();
+  await page
+    .locator('label:has(input[aria-label="Enable YNAB"])')
+    .click();
+
+  await expect(page.getByTitle("Vanguard")).toBeHidden();
+  await expect(page.getByTitle("Alight")).toBeHidden();
+  await expect(page.getByTitle("YNAB")).toBeHidden();
+  await expect(page.getByText("ProjectionLab API Key")).toBeVisible();
+});
+
+test("Clear All Data re-enables all plugins", async ({ page, context }) => {
+  const sw = await getServiceWorker(context);
+  await seedStorage(sw, { disabledPlugins: ["vanguard", "alight"] });
+  await page.reload();
+
+  await expect(page.getByTitle("Vanguard")).toBeHidden();
+  await page.getByTitle("Settings").click();
+  await page.getByRole("button", { name: "Clear All Data" }).click();
+  await expect(page.getByRole("button", { name: "✓ Cleared" })).toBeVisible();
+
+  await expect(page.getByTitle("Vanguard")).toBeVisible();
+  await expect(page.getByTitle("Alight")).toBeVisible();
+  const stored = await getStorage(sw, ["disabledPlugins"]);
+  expect(stored.disabledPlugins).toBeUndefined();
+});
+
 test("PL key Clear button removes the key but preserves plugin data", async ({
   page,
   context,

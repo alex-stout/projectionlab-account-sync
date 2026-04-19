@@ -141,6 +141,7 @@ export default function Popup() {
               setLastSynced({});
               setLastRefreshed({});
               setPlLastRefreshed(null);
+              setDisabledPlugins([]);
             }}
             plAccounts={plAccounts}
             plLoading={plLoading}
