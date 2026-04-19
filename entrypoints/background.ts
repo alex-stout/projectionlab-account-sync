@@ -167,10 +167,5 @@ async function handleMessage(msg: any): Promise<any> {
 }
 
 export default defineBackground(() => {
-  browser.runtime.onMessage.addListener(
-    (msg: any, _sender: any, sendResponse: (r: any) => void) => {
-      handleMessage(msg).then(sendResponse);
-      return true;
-    },
-  );
+  browser.runtime.onMessage.addListener((msg: any) => handleMessage(msg));
 });
