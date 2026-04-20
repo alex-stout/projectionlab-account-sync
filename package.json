@@ -17,6 +17,7 @@
     "build:e2e": "E2E=true wxt build",
     "e2e": "npm run build:e2e && playwright test",
     "e2e:ci": "CI=true npm run build:e2e && CI=true playwright test",
+    "docs:screenshots": "npm run build:e2e && SCREENSHOTS=true playwright test screenshots",
     "lint:firefox": "npm run build:firefox && addons-linter --self-hosted .output/firefox-mv3",
     "compile": "tsc --noEmit",
     "postinstall": "wxt prepare"
