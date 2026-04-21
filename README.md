@@ -5,7 +5,7 @@ A Chrome/Firefox browser extension that syncs account balances from financial in
 ![Code Coverage](https://img.shields.io/badge/coverage-97%25-brightgreen?style=flat)
 
 <div align="center">
-  <img src="docs/screenshot.png" alt="Extension popup showing Vanguard account mappings" width="400" />
+  <img src="docs/popup.png" alt="Extension popup showing Vanguard account mappings" width="400" />
 </div>
 
 > [!NOTE]
