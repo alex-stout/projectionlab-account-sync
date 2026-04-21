@@ -50,3 +50,12 @@ jobs:
           gh release upload "${{ needs.release-please.outputs.tag_name }}" \
             .output/*.zip \
             --clobber
+      - name: Submit Firefox build to AMO
+        env:
+          FIREFOX_EXTENSION_ID: projectionlab-account-sync@extension
+          FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
+          FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
+        run: |
+          npx wxt submit \
+            --firefox-zip .output/*-firefox.zip \
+            --firefox-sources-zip .output/*-sources.zip
