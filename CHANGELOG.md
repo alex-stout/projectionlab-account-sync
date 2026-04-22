@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/alex-stout/projectionlab-account-sync/compare/v0.3.0...v0.4.0) (2026-04-22)
+
+
+### Features
+
+* chrome publish ([a80f4dd](https://github.com/alex-stout/projectionlab-account-sync/commit/a80f4dd372ca3d2f48415f70748583c97eaf6851))
+
 ## [0.3.0](https://github.com/alex-stout/projectionlab-account-sync/compare/v0.2.0...v0.3.0) (2026-04-22)
 
 
