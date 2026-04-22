@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/alex-stout/projectionlab-account-sync/compare/v0.4.0...v0.4.1) (2026-04-22)
+
+
+### Bug Fixes
+
+* link text ([526a1e1](https://github.com/alex-stout/projectionlab-account-sync/commit/526a1e1b983e9f86f71f4767ea3395083120efb5))
+
 ## [0.4.0](https://github.com/alex-stout/projectionlab-account-sync/compare/v0.3.0...v0.4.0) (2026-04-22)
 
 
