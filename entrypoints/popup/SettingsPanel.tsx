@@ -27,9 +27,7 @@ type Props = {
   onTogglePlugin: (pluginId: string, enabled: boolean) => void;
 };
 
-const API_PLUGINS = PLUGINS.filter(
-  (p): p is ApiPlugin => p.kind === "api",
-);
+const API_PLUGINS = PLUGINS.filter((p): p is ApiPlugin => p.kind === "api");
 
 export default function SettingsPanel({
   onKeyChange,
@@ -103,7 +101,10 @@ export default function SettingsPanel({
       <input
         type="password"
         value={key}
-        onChange={(e) => { setKey(e.target.value); setSaved(false); }}
+        onChange={(e) => {
+          setKey(e.target.value);
+          setSaved(false);
+        }}
         placeholder="Paste your API key…"
         className="w-full text-xs border border-gray-200 rounded-md px-3 py-2 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400"
       />
@@ -167,10 +168,7 @@ export default function SettingsPanel({
           {PLUGINS.map((p) => {
             const enabled = !disabledPlugins.includes(p.id);
             return (
-              <li
-                key={p.id}
-                className="flex items-center gap-3 py-1.5"
-              >
+              <li key={p.id} className="flex items-center gap-3 py-1.5">
                 <img
                   src={p.icon}
                   alt=""
@@ -203,7 +201,7 @@ export default function SettingsPanel({
       ))}
 
       <div className="border-t border-gray-100 pt-5">
-        <p className="text-xs font-medium text-gray-600 mb-1">Sync Data</p>
+        <p className="text-xs font-medium text-gray-600 mb-1">Delete Data</p>
         <p className="text-[11px] text-gray-400 mb-3">
           Removes all cached accounts, mappings, sync history, and credentials.
         </p>
