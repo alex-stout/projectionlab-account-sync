@@ -15,7 +15,8 @@ export default function SyncFooter({
   plSync,
   onSync,
 }: Props) {
-  const canSync = mappedCount > 0 && plSync.status !== "syncing";
+  const canSync =
+    mappedCount > 0 && plAccountsLoaded && plSync.status !== "syncing";
 
   return (
     <div className="px-4 pb-4 pt-2 border-t border-gray-100 space-y-2">

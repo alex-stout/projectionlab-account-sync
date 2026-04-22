@@ -28,6 +28,26 @@ describe("SyncFooter", () => {
     expect(screen.getByRole("button")).toBeDisabled();
   });
 
+  it("disables sync button when plAccountsLoaded is false", () => {
+    render(<SyncFooter mappedCount={1} totalCount={1} plAccountsLoaded={false} plSync={{ status: "idle" }} onSync={vi.fn()} />);
+    expect(screen.getByRole("button", { name: "Sync to ProjectionLab" })).toBeDisabled();
+  });
+
+  it("does not call onSync when clicked with plAccountsLoaded false", () => {
+    const onSync = vi.fn();
+    render(
+      <SyncFooter
+        mappedCount={1}
+        totalCount={1}
+        plAccountsLoaded={false}
+        plSync={{ status: "idle" }}
+        onSync={onSync}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button"));
+    expect(onSync).not.toHaveBeenCalled();
+  });
+
   it("disables sync button while syncing", () => {
     render(<SyncFooter mappedCount={2} totalCount={2} plAccountsLoaded={true} plSync={{ status: "syncing" }} onSync={vi.fn()} />);
     expect(screen.getByRole("button", { name: "Syncing…" })).toBeDisabled();
