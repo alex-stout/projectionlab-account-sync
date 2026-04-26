@@ -205,7 +205,7 @@ test.describe("Screenshots", () => {
     // popup rendering at its natural 460x480 size inside the 1280x800 frame.
     const context = await launchDemoContext(1);
     try {
-      await mkdir("docs/store", { recursive: true });
+      await mkdir("docs/store/chrome", { recursive: true });
       const sw = await getServiceWorker(context);
       const extensionId = sw.url().split("/")[2];
 
@@ -225,12 +225,12 @@ test.describe("Screenshots", () => {
         caption: string;
       }[] = [
         {
-          path: "docs/store/01-main.jpg",
+          path: "docs/store/chrome/01-main.jpg",
           buffer: mainShot,
           caption: "Sync account balances into ProjectionLab with one click",
         },
         {
-          path: "docs/store/02-settings.jpg",
+          path: "docs/store/chrome/02-settings.jpg",
           buffer: settingsShot,
           caption: "Your credentials stay local — no telemetry, no servers",
         },
@@ -259,13 +259,13 @@ test.describe("Screenshots", () => {
         html: string;
       }[] = [
         {
-          path: "docs/store/promo-small.jpg",
+          path: "docs/store/chrome/promo-small.jpg",
           width: 440,
           height: 280,
           html: buildSmallPromo(icon),
         },
         {
-          path: "docs/store/promo-marquee.jpg",
+          path: "docs/store/chrome/promo-marquee.jpg",
           width: 1400,
           height: 560,
           html: buildMarqueePromo(icon, mainShot.toString("base64")),
@@ -277,6 +277,85 @@ test.describe("Screenshots", () => {
         await frame.setViewportSize({ width: p.width, height: p.height });
         await frame.setContent(p.html);
         await frame.screenshot({ path: p.path, type: "jpeg", quality: 92 });
+        await frame.close();
+      }
+    } finally {
+      await context.close();
+    }
+  });
+
+  test("edge store shots", async () => {
+    // Edge Add-ons requires PNG. Sizes match CWS:
+    // screenshots 1280x800, small promo 440x280, large promo 1400x560.
+    const context = await launchDemoContext(1);
+    try {
+      await mkdir("docs/store/edge", { recursive: true });
+      const sw = await getServiceWorker(context);
+      const extensionId = sw.url().split("/")[2];
+
+      const popup = await context.newPage();
+      await popup.goto(`chrome-extension://${extensionId}/popup.html`);
+      await expect(popup.getByText("Roth IRA — VTSAX")).toBeVisible();
+      const mainShot = await popup.screenshot();
+
+      await popup.getByTitle("Settings").click();
+      await expect(popup.getByText("ProjectionLab API Key")).toBeVisible();
+      const settingsShot = await popup.screenshot();
+      await popup.close();
+
+      const frames: {
+        path: string;
+        buffer: Buffer;
+        caption: string;
+      }[] = [
+        {
+          path: "docs/store/edge/01-main.png",
+          buffer: mainShot,
+          caption: "Sync account balances into ProjectionLab with one click",
+        },
+        {
+          path: "docs/store/edge/02-settings.png",
+          buffer: settingsShot,
+          caption: "Your credentials stay local — no telemetry, no servers",
+        },
+      ];
+
+      for (const v of frames) {
+        const frame = await context.newPage();
+        await frame.setViewportSize({ width: 1280, height: 800 });
+        await frame.setContent(
+          buildStoreFrame(v.buffer.toString("base64"), v.caption),
+        );
+        await frame.screenshot({ path: v.path, type: "png" });
+        await frame.close();
+      }
+
+      const icon = await iconDataUri();
+      const promos: {
+        path: string;
+        width: number;
+        height: number;
+        html: string;
+      }[] = [
+        {
+          path: "docs/store/edge/promo-small.png",
+          width: 440,
+          height: 280,
+          html: buildSmallPromo(icon),
+        },
+        {
+          path: "docs/store/edge/promo-large.png",
+          width: 1400,
+          height: 560,
+          html: buildMarqueePromo(icon, mainShot.toString("base64")),
+        },
+      ];
+
+      for (const p of promos) {
+        const frame = await context.newPage();
+        await frame.setViewportSize({ width: p.width, height: p.height });
+        await frame.setContent(p.html);
+        await frame.screenshot({ path: p.path, type: "png" });
         await frame.close();
       }
     } finally {

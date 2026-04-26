@@ -5,7 +5,7 @@ A Chrome/Firefox browser extension that syncs account balances from financial in
 ![Code Coverage](https://img.shields.io/badge/coverage-97%25-brightgreen?style=flat)
 
 <div align="center">
-  <img src="docs/store/promo-marquee.jpg" alt="ProjectionLab Account Sync — sync balances from Vanguard, Alight, and YNAB" />
+  <img src="docs/store/chrome/promo-marquee.jpg" alt="ProjectionLab Account Sync — sync balances from Vanguard, Alight, and YNAB" />
 </div>
 
 > [!NOTE]
