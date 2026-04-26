@@ -81,6 +81,8 @@ describe("App", () => {
         result.accounts_vanguard = [{ name: "IRA", balance: 5000, accountId: null }];
       if (arr.includes("mappings_vanguard"))
         result.mappings_vanguard = { IRA: "pl-1" };
+      if (arr.includes("plAccounts"))
+        result.plAccounts = [{ id: "pl-1", name: "Roth IRA" }];
       return Promise.resolve(result);
     });
     vi.mocked(browser.runtime.sendMessage).mockResolvedValue({ results: [{ name: "IRA", ok: true }] } as any);
