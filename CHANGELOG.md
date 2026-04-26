@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.3](https://github.com/alex-stout/projectionlab-account-sync/compare/v0.4.2...v0.4.3) (2026-04-26)
+
+
+### Bug Fixes
+
+* **test:** button disabled when no PL accounts ([#19](https://github.com/alex-stout/projectionlab-account-sync/issues/19)) ([69621e7](https://github.com/alex-stout/projectionlab-account-sync/commit/69621e7d47f6885303cfeed5078c1920c22b6d09))
+
 ## [0.4.2](https://github.com/alex-stout/projectionlab-account-sync/compare/v0.4.1...v0.4.2) (2026-04-22)
 
 
