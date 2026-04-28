@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/alex-stout/projectionlab-account-sync/compare/v0.4.4...v0.5.0) (2026-04-28)
+
+
+### Features
+
+* Edge publish ([#27](https://github.com/alex-stout/projectionlab-account-sync/issues/27)) ([81df3f6](https://github.com/alex-stout/projectionlab-account-sync/commit/81df3f6b376c014c29647c5be0888628d4c9de17))
+
 ## [0.4.4](https://github.com/alex-stout/projectionlab-account-sync/compare/v0.4.3...v0.4.4) (2026-04-28)
 
 
