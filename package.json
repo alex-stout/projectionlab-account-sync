@@ -39,7 +39,7 @@
     "addons-linter": "^10.3.0",
     "jsdom": "^29.0.2",
     "playwright": "^1.59.1",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.3",
     "vitest": "^4.1.4",
     "wxt": "^0.20.22"
   }
