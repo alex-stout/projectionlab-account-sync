@@ -21,8 +21,8 @@ jobs:
         with:
           release-type: node
 
-  publish:
-    name: Build and attach extension zips
+  build:
+    name: Build extension zips
     needs: release-please
     if: needs.release-please.outputs.release_created == 'true'
     runs-on: ubuntu-latest
@@ -50,8 +50,44 @@ jobs:
           gh release upload "${{ needs.release-please.outputs.tag_name }}" \
             .output/*.zip \
             --clobber
-      - name: Submit Firefox build to AMO
-        env:
+      - uses: actions/upload-artifact@v4
+        with:
+          name: extension-zips
+          path: .output/*.zip
+          retention-days: 7
+
+  submit-chrome:
+    name: Submit to Chrome Web Store
+    needs: [release-please, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/download-artifact@v4
+        with:
+          name: extension-zips
+          path: .output
+      - env:
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+        run: npx wxt submit --chrome-zip .output/*-chrome.zip
+
+  submit-firefox:
+    name: Submit to Firefox AMO
+    needs: [release-please, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/download-artifact@v4
+        with:
+          name: extension-zips
+          path: .output
+      - env:
           FIREFOX_EXTENSION_ID: projectionlab-account-sync@extension
           FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
           FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
@@ -59,15 +95,20 @@ jobs:
           npx wxt submit \
             --firefox-zip .output/*-firefox.zip \
             --firefox-sources-zip .output/*-sources.zip
-      - name: Submit Chrome build to Chrome Web Store
-        env:
-          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
-          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
-          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
-          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
-        run: npx wxt submit --chrome-zip .output/*-chrome.zip
-      - name: Submit Edge build to Microsoft Partner Center
-        env:
+
+  submit-edge:
+    name: Submit to Edge Add-ons
+    needs: [release-please, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/download-artifact@v4
+        with:
+          name: extension-zips
+          path: .output
+      - env:
           EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
           EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
           EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
