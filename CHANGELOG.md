@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.4](https://github.com/alex-stout/projectionlab-account-sync/compare/v0.4.3...v0.4.4) (2026-04-28)
+
+
+### Continuous Integration
+
+* **publish:** fix Edge key version ([#24](https://github.com/alex-stout/projectionlab-account-sync/issues/24)) ([89c4abb](https://github.com/alex-stout/projectionlab-account-sync/commit/89c4abbdb7782ac5b41d287aa99c9053fdaa20aa))
+
 ## [0.4.3](https://github.com/alex-stout/projectionlab-account-sync/compare/v0.4.2...v0.4.3) (2026-04-28)
 
 
