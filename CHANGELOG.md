@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/alex-stout/projectionlab-account-sync/compare/v0.5.0...v0.5.1) (2026-04-28)
+
+
+### Miscellaneous Chores
+
+* release 0.5.1 ([0380ebd](https://github.com/alex-stout/projectionlab-account-sync/commit/0380ebdeb316dc81ff8241efc230f515bacf37b1))
+
 ## [0.5.0](https://github.com/alex-stout/projectionlab-account-sync/compare/v0.4.4...v0.5.0) (2026-04-28)
 
 
