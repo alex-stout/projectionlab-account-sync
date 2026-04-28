@@ -2,6 +2,8 @@
 
 A Chrome/Firefox browser extension that syncs account balances from financial institutions into [ProjectionLab](https://projectionlab.com).
 
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/kblfkofeklnbiooiilkgdmheideflnfd?label=Chrome&logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/kblfkofeklnbiooiilkgdmheideflnfd)
+[![Firefox Add-ons](https://img.shields.io/amo/v/projectionlab-account-sync?label=Firefox&logo=firefox)](https://addons.mozilla.org/firefox/addon/projectionlab-account-sync/)
 ![Code Coverage](https://img.shields.io/badge/coverage-97%25-brightgreen?style=flat)
 
 <div align="center">
