@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.6.0](https://github.com/alex-stout/projectionlab-account-sync/compare/v0.5.1...v0.6.0) (2026-04-29)
+
+
+### Features
+
+* **plugin:** Monarch Money support ([#33](https://github.com/alex-stout/projectionlab-account-sync/issues/33)) ([6d3784a](https://github.com/alex-stout/projectionlab-account-sync/commit/6d3784abc39762f19c8dc31840b0ec093de9f3af))
+
+
+### Bug Fixes
+
+* **ynab:** logo ([#35](https://github.com/alex-stout/projectionlab-account-sync/issues/35)) ([d04c79d](https://github.com/alex-stout/projectionlab-account-sync/commit/d04c79d709d71254d9ae1bb060692904f0f53624))
+
 ## [0.5.1](https://github.com/alex-stout/projectionlab-account-sync/compare/v0.5.0...v0.5.1) (2026-04-28)
 
 
