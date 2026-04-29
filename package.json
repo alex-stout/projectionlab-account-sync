@@ -36,7 +36,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitest/coverage-v8": "^4.1.4",
     "@wxt-dev/module-react": "^1.1.5",
-    "addons-linter": "^10.3.0",
+    "addons-linter": "^10.4.0",
     "jsdom": "^29.0.2",
     "playwright": "^1.59.1",
     "typescript": "^6.0.3",
