@@ -1,4 +1,3 @@
-import "~/assets/tailwind.css";
 import vanguard from "./index";
 import { parseMoney, queryDeep, createMain } from "../content-utils";
 
@@ -15,15 +14,19 @@ export function extractPortfolio() {
     if (nameEl instanceof HTMLAnchorElement) href = nameEl.href;
 
     const name = nameEl?.textContent?.trim();
-    const balance = parseMoney(container.querySelector(".balance span")?.textContent?.trim() ?? null);
+    const balance = parseMoney(
+      container.querySelector(".balance span")?.textContent?.trim() ?? null,
+    );
 
     if (!name || balance === null) return [];
 
-    return [{
-      name,
-      balance,
-      accountId: extractAccountId(href ?? undefined),
-    }];
+    return [
+      {
+        name,
+        balance,
+        accountId: extractAccountId(href ?? undefined),
+      },
+    ];
   });
 }
 

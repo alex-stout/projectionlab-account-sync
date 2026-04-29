@@ -12,7 +12,6 @@
  * a successful numeric parse marks the balance, anything else is the name.
  * The account id comes from the href.
  */
-import "~/assets/tailwind.css";
 import monarch from "./index";
 import { parseMoney, queryDeep, createMain } from "../content-utils";
 
