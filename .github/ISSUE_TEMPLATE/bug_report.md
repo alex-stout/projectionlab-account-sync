@@ -11,7 +11,7 @@ e.g. Chrome 124, Firefox 126
 Found in chrome://extensions or about:addons
 
 **Financial institution**
-e.g. Vanguard, Alight
+e.g. Vanguard, Alight, Monarch, YNAB
 
 **What happened**
 A clear description of the problem.

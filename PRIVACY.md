@@ -8,7 +8,7 @@ ProjectionLab Account Sync does not collect, transmit, or share any of your data
 
 - **Your ProjectionLab API key**, which you enter in the extension's Settings panel.
 - **Your YNAB Personal Access Token**, if you choose to use the YNAB source. Entered in the extension's Settings panel and used only to authenticate API requests to YNAB on your behalf.
-- **Account names and balances** from supported sources (currently Vanguard, Alight, and YNAB). For Vanguard and Alight, these are read from pages you have open in your browser; for YNAB, they are fetched from the YNAB API using your token. In all cases, reads happen only when you explicitly click the refresh button for that source.
+- **Account names and balances** from supported sources (currently Vanguard, Alight, Monarch, and YNAB). For Vanguard, Alight, and Monarch, these are read from pages you have open in your browser; for YNAB, they are fetched from the YNAB API using your token. In all cases, reads happen only when you explicitly click the refresh button for that source.
 - **The list of accounts in your ProjectionLab plan**, fetched via ProjectionLab's official plugin API when you click refresh for ProjectionLab.
 - **Your account mappings and last-refresh timestamps**, saved so the popup can show you what's linked and when.
 

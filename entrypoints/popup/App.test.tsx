@@ -245,7 +245,7 @@ describe("App", () => {
 
   it("forces settings view when all plugins are disabled", async () => {
     vi.mocked(browser.storage.local.get).mockResolvedValue({
-      disabledPlugins: ["vanguard", "alight", "ynab"],
+      disabledPlugins: ["vanguard", "alight", "monarch", "ynab"],
     } as any);
     render(<App />);
     await waitFor(() =>

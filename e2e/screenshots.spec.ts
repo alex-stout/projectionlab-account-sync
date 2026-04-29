@@ -74,7 +74,7 @@ function buildSmallPromo(icon: string): string {
   <div class="tile">
     <img class="icon" src="${icon}" />
     <div class="title">ProjectionLab Account Sync</div>
-    <div class="tagline">Sync balances from Vanguard, YNAB, and others</div>
+    <div class="tagline">Sync balances from Vanguard, YNAB, Monarch, and others</div>
   </div>
 </body>
 </html>`;
@@ -111,7 +111,7 @@ function buildMarqueePromo(icon: string, popupBase64: string): string {
     <div class="content">
       <img class="icon" src="${icon}" />
       <div class="title">Keep ProjectionLab in sync</div>
-      <div class="tagline">Sync account balances from Vanguard, YNAB, and others into your ProjectionLab plan — one click, no telemetry, no servers.</div>
+      <div class="tagline">Sync account balances from Vanguard, YNAB, Monarch, and others into your ProjectionLab plan — one click, no telemetry, no servers.</div>
     </div>
     <img class="popup" src="data:image/png;base64,${popupBase64}" />
   </div>
