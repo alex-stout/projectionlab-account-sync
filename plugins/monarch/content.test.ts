@@ -103,6 +103,20 @@ describe("extractPortfolio", () => {
     expect(extractPortfolio()).toEqual([]);
   });
 
+  it("skips empty and whitespace-only fs-exclude spans", () => {
+    document.body.innerHTML = `
+      <a href="/accounts/details/7">
+        <span class="fs-exclude"></span>
+        <span class="fs-exclude">   </span>
+        <span class="fs-exclude">Real Account</span>
+        <span class="fs-exclude">$25.00</span>
+      </a>
+    `;
+    expect(extractPortfolio()).toEqual([
+      { name: "Real Account", balance: 25, accountId: "7" },
+    ]);
+  });
+
   it("returns empty array when no anchors match", () => {
     document.body.innerHTML = "<div>No accounts here</div>";
     expect(extractPortfolio()).toEqual([]);

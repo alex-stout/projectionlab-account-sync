@@ -24,8 +24,7 @@ export function extractAccountId(href?: string) {
 
 export function extractPortfolio() {
   return queryDeep('a[href^="/accounts/details/"]').flatMap((anchor) => {
-    const href =
-      anchor instanceof HTMLAnchorElement ? anchor.getAttribute("href") : null;
+    const href = anchor.getAttribute("href")!;
 
     const fsSpans = anchor.querySelectorAll<HTMLSpanElement>("span.fs-exclude");
     let name: string | undefined;
@@ -48,7 +47,7 @@ export function extractPortfolio() {
       {
         name,
         balance,
-        accountId: extractAccountId(href ?? undefined),
+        accountId: extractAccountId(href),
       },
     ];
   });
