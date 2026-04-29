@@ -7,6 +7,7 @@ const projectRoot = resolve(__dirname, "../..");
 const mockSiteRoutes: Record<string, string> = {
   "/vanguard/": resolve(projectRoot, "plugins/vanguard/mock-site/index.html"),
   "/alight/": resolve(projectRoot, "plugins/alight/mock-site/index.html"),
+  "/monarch/": resolve(projectRoot, "plugins/monarch/mock-site/index.html"),
 };
 
 export default defineConfig({
@@ -35,6 +36,7 @@ export default defineConfig({
       input: {
         vanguard: resolve(projectRoot, "plugins/vanguard/mock-site/index.html"),
         alight: resolve(projectRoot, "plugins/alight/mock-site/index.html"),
+        monarch: resolve(projectRoot, "plugins/monarch/mock-site/index.html"),
         projectionlab: resolve(__dirname, "projectionlab/index.html"),
       },
     },

@@ -10,6 +10,7 @@ import {
 
 const VANGUARD_URL = "http://localhost:3000/vanguard/";
 const ALIGHT_URL = "http://localhost:3000/alight/";
+const MONARCH_URL = "http://localhost:3000/monarch/";
 const PL_URL = "http://localhost:3000/projectionlab/";
 
 test.beforeEach(async ({ context }) => {
@@ -125,6 +126,46 @@ test("full sync: Alight → ProjectionLab", async ({ context, popupBaseUrl }) =>
   // Step 5: verify results
   await expect(popup.getByText(/✓.*401\(k\)/)).toBeVisible({ timeout: 10_000 });
   await expect(popup.getByText(/✓.*HSA/)).toBeVisible();
+});
+
+test("refreshes Monarch accounts from mock tab", async ({ context, popupBaseUrl }) => {
+  await openMockTab(context, MONARCH_URL);
+
+  const popup = await openPopup(context, popupBaseUrl);
+  await popup.getByRole("button", { name: "Monarch" }).click();
+  await popup.getByRole("button", { name: /↻ Monarch/ }).click();
+
+  await expect(popup.getByText("Roth IRA")).toBeVisible({ timeout: 10_000 });
+  await expect(popup.getByText("Traditional 401k")).toBeVisible();
+  await expect(popup.getByText("$2,500")).toBeVisible();
+  await expect(popup.getByText("$3,750")).toBeVisible();
+});
+
+test("full sync: Monarch → ProjectionLab", async ({ context, popupBaseUrl }) => {
+  await openMockTab(context, MONARCH_URL);
+
+  const popup = await openPopup(context, popupBaseUrl);
+  await popup.getByRole("button", { name: "Monarch" }).click();
+
+  await popup.getByRole("button", { name: /↻ Monarch/ }).click();
+  await expect(popup.getByText("Roth IRA")).toBeVisible({ timeout: 10_000 });
+  await expect(popup.getByText("Traditional 401k")).toBeVisible();
+
+  await openMockTab(context, PL_URL);
+  await popup.getByTitle("Settings").click();
+  await popup.getByRole("button", { name: "↻ Refresh" }).click();
+  await expect(popup.getByText(/\d+ loaded/)).toBeVisible({ timeout: 10_000 });
+  await popup.getByTitle("Monarch").click();
+  const selects = popup.locator("select");
+  await expect(selects.first()).toBeEnabled({ timeout: 10_000 });
+
+  await selects.nth(0).selectOption("pl-roth-ira");
+  await selects.nth(1).selectOption("pl-401k");
+
+  await popup.getByRole("button", { name: "Sync to ProjectionLab" }).click();
+
+  await expect(popup.getByText(/✓.*Roth IRA/)).toBeVisible({ timeout: 10_000 });
+  await expect(popup.getByText(/✓.*Traditional 401k/)).toBeVisible();
 });
 
 test("Vanguard shows availability dot when its tab is open", async ({

@@ -2,6 +2,7 @@ import "~/assets/tailwind.css";
 import { PLUGINS, type ContentPlugin } from "~/plugins";
 import { main as vanguardMain } from "~/plugins/vanguard/content";
 import { main as alightMain } from "~/plugins/alight/content";
+import { main as monarchMain } from "~/plugins/monarch/content";
 
 const CONTENT_PLUGINS = PLUGINS.filter(
   (p): p is ContentPlugin => p.kind === "content",
@@ -10,6 +11,7 @@ const CONTENT_PLUGINS = PLUGINS.filter(
 const handlers: Record<string, () => void> = {
   vanguard: vanguardMain,
   alight: alightMain,
+  monarch: monarchMain,
 };
 
 export function matchesPattern(url: string, pattern: string): boolean {
