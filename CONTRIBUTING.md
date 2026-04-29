@@ -112,7 +112,7 @@ The mock site must reproduce just the CSS selectors your scraper targets, with f
 ```ts
 import mybroker from "./mybroker";
 
-export const PLUGINS: SourcePlugin[] = [vanguard, alight, ynab, mybroker];
+export const PLUGINS: SourcePlugin[] = [vanguard, alight, monarch, ynab, mybroker];
 ```
 
 **`entrypoints/plugin.content.ts`** — add the content handler:
@@ -123,6 +123,7 @@ import { main as mybrokerMain } from "~/plugins/mybroker/content";
 const handlers: Record<string, () => void> = {
   vanguard: vanguardMain,
   alight: alightMain,
+  monarch: monarchMain,
   mybroker: mybrokerMain,
 };
 ```
@@ -135,6 +136,7 @@ const handlers: Record<string, () => void> = {
 const mockSiteRoutes: Record<string, string> = {
   "/vanguard/": resolve(projectRoot, "plugins/vanguard/mock-site/index.html"),
   "/alight/":   resolve(projectRoot, "plugins/alight/mock-site/index.html"),
+  "/monarch/":  resolve(projectRoot, "plugins/monarch/mock-site/index.html"),
   "/mybroker/": resolve(projectRoot, "plugins/mybroker/mock-site/index.html"),
 };
 
@@ -243,7 +245,7 @@ Mock `global.fetch` and cover the branches that matter: missing/empty token, 401
 ```ts
 import mybroker from "./mybroker";
 
-export const PLUGINS: SourcePlugin[] = [vanguard, alight, ynab, mybroker];
+export const PLUGINS: SourcePlugin[] = [vanguard, alight, monarch, ynab, mybroker];
 ```
 
 That's it — no content-script handler, no mock site, no `plugin.content.ts` changes. The background worker auto-detects `kind: "api"` and calls `refresh()` when the user clicks the refresh button.

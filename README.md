@@ -11,12 +11,13 @@ A Chrome/Firefox browser extension that syncs account balances from financial in
 </div>
 
 > [!NOTE]
-> This extension is not affiliated with, endorsed by, or maintained by ProjectionLab, Vanguard, Alight, YNAB, or any other financial institution. It is an independent community tool that uses ProjectionLab's plugin API.
+> This extension is not affiliated with, endorsed by, or maintained by ProjectionLab, Vanguard, Alight, Monarch, YNAB, or any other financial institution. It is an independent community tool that uses ProjectionLab's plugin API.
 
 ## Supported sources
 
 - **Vanguard** — scrapes balances from the portfolio overview page
 - **Alight** — scrapes balances from the retirement overview page
+- **Monarch** — scrapes balances from the Accounts page
 - **YNAB** — fetches balances via the YNAB API using a Personal Access Token
 
 ## How it works
