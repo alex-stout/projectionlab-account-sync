@@ -7,7 +7,7 @@ const plugin: SourcePlugin = {
   icon,
   kind: "content",
   urlPatterns: [
-    "https://dashboard.web.vanguard.com/*",
+    "https://www.vanguard.com/en/investor/portfolio/dashboard/*",
     /* v8 ignore start -- E2E-only URL, covered by the mock-site E2E suite. */
     ...(__E2E__ ? ["http://localhost:3000/vanguard/*"] : []),
     /* v8 ignore stop */
