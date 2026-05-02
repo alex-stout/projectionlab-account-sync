@@ -216,6 +216,16 @@ describe("SettingsPanel", () => {
   });
 });
 
+describe("SettingsPanel version footer", () => {
+  it("renders the extension version from the manifest", () => {
+    vi.mocked(browser.runtime.getManifest).mockReturnValue({
+      version: "1.2.3",
+    } as any);
+    render(<SettingsPanel {...plDefaults} onKeyChange={vi.fn()} />);
+    expect(screen.getByText("v1.2.3")).toBeInTheDocument();
+  });
+});
+
 describe("SettingsPanel — ProjectionLab Accounts section", () => {
   it("shows 'Not loaded' and an enabled Refresh button when no PL accounts", () => {
     render(<SettingsPanel {...plDefaults} onKeyChange={vi.fn()} />);

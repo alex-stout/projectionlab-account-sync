@@ -212,6 +212,10 @@ export default function SettingsPanel({
           {cleared ? "✓ Cleared" : "Clear All Data"}
         </button>
       </div>
+
+      <p className="text-[11px] text-gray-400 mt-auto pt-5 text-center">
+        v{browser.runtime.getManifest().version}
+      </p>
     </div>
   );
 }
