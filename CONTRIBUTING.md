@@ -16,6 +16,19 @@ npm run test:coverage     # unit tests with coverage report
 npm run e2e               # build + Playwright e2e tests
 ```
 
+## Formatting & linting
+
+[Biome](https://biomejs.dev) handles both formatting and linting.
+
+```sh
+npm run check        # check formatting + lint (CI runs `biome ci`)
+npm run check:fix    # auto-fix what it can
+npm run format       # format only
+npm run lint         # lint only
+```
+
+A pre-commit hook (installed by `npm install` via `simple-git-hooks`) runs `biome check` on staged files. If it fails, run `npm run check:fix`, re-stage, and commit again.
+
 ## Adding a plugin
 
 Plugins live in `plugins/<id>/` and come in two flavors, distinguished by the `kind` field on the plugin metadata:

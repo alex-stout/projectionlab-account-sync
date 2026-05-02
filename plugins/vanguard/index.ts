@@ -1,17 +1,17 @@
-import icon from "./icon.svg";
 import type { SourcePlugin } from "../index";
+import icon from "./icon.svg";
 
 const plugin: SourcePlugin = {
-  id: "vanguard",
-  name: "Vanguard",
-  icon,
-  kind: "content",
-  urlPatterns: [
-    "https://www.vanguard.com/en/investor/portfolio/dashboard/*",
-    /* v8 ignore start -- E2E-only URL, covered by the mock-site E2E suite. */
-    ...(__E2E__ ? ["http://localhost:3000/vanguard/*"] : []),
-    /* v8 ignore stop */
-  ],
+	id: "vanguard",
+	name: "Vanguard",
+	icon,
+	kind: "content",
+	urlPatterns: [
+		"https://www.vanguard.com/en/investor/portfolio/dashboard/*",
+		/* v8 ignore start -- E2E-only URL, covered by the mock-site E2E suite. */
+		...(__E2E__ ? ["http://localhost:3000/vanguard/*"] : []),
+		/* v8 ignore stop */
+	],
 };
 
 export default plugin;

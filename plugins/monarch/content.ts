@@ -12,44 +12,46 @@
  * a successful numeric parse marks the balance, anything else is the name.
  * The account id comes from the href.
  */
+
+import { createMain, parseMoney, queryDeep } from "../content-utils";
 import monarch from "./index";
-import { parseMoney, queryDeep, createMain } from "../content-utils";
 
 export function extractAccountId(href?: string) {
-  if (!href) return null;
-  const match = href.match(/\/accounts\/details\/(\d+)/);
-  return match ? match[1] : null;
+	if (!href) return null;
+	const match = href.match(/\/accounts\/details\/(\d+)/);
+	return match ? match[1] : null;
 }
 
 export function extractPortfolio() {
-  return queryDeep('a[href^="/accounts/details/"]').flatMap((anchor) => {
-    const href = anchor.getAttribute("href")!;
+	return queryDeep('a[href^="/accounts/details/"]').flatMap((anchor) => {
+		const href = anchor.getAttribute("href");
+		if (!href) return [];
 
-    const fsSpans = anchor.querySelectorAll<HTMLSpanElement>("span.fs-exclude");
-    let name: string | undefined;
-    let balance: number | null = null;
+		const fsSpans = anchor.querySelectorAll<HTMLSpanElement>("span.fs-exclude");
+		let name: string | undefined;
+		let balance: number | null = null;
 
-    for (const span of fsSpans) {
-      const text = span.textContent?.trim();
-      if (!text) continue;
-      const maybeMoney = parseMoney(text);
-      if (maybeMoney !== null && !Number.isNaN(maybeMoney)) {
-        balance ??= maybeMoney;
-      } else {
-        name ??= text;
-      }
-    }
+		for (const span of fsSpans) {
+			const text = span.textContent?.trim();
+			if (!text) continue;
+			const maybeMoney = parseMoney(text);
+			if (maybeMoney !== null && !Number.isNaN(maybeMoney)) {
+				balance ??= maybeMoney;
+			} else {
+				name ??= text;
+			}
+		}
 
-    if (!name || balance === null) return [];
+		if (!name || balance === null) return [];
 
-    return [
-      {
-        name,
-        balance,
-        accountId: extractAccountId(href),
-      },
-    ];
-  });
+		return [
+			{
+				name,
+				balance,
+				accountId: extractAccountId(href),
+			},
+		];
+	});
 }
 
 export const main = createMain(monarch.id, extractPortfolio);

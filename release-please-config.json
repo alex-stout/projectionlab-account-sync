@@ -1,20 +1,20 @@
 {
-  "packages": {
-    ".": {
-      "release-type": "node",
-      "changelog-sections": [
-        { "type": "feat", "section": "Features" },
-        { "type": "fix", "section": "Bug Fixes" },
-        { "type": "perf", "section": "Performance" },
-        { "type": "docs", "section": "Documentation" },
-        { "type": "refactor", "section": "Refactoring" },
-        { "type": "chore", "section": "Chores" },
-        { "type": "build", "section": "Build System" },
-        { "type": "ci", "section": "Continuous Integration" },
-        { "type": "test", "section": "Tests" },
-        { "type": "style", "section": "Styles" },
-        { "type": "revert", "section": "Reverts" }
-      ]
-    }
-  }
+	"packages": {
+		".": {
+			"release-type": "node",
+			"changelog-sections": [
+				{ "type": "feat", "section": "Features" },
+				{ "type": "fix", "section": "Bug Fixes" },
+				{ "type": "perf", "section": "Performance" },
+				{ "type": "docs", "section": "Documentation" },
+				{ "type": "refactor", "section": "Refactoring" },
+				{ "type": "chore", "section": "Chores" },
+				{ "type": "build", "section": "Build System" },
+				{ "type": "ci", "section": "Continuous Integration" },
+				{ "type": "test", "section": "Tests" },
+				{ "type": "style", "section": "Styles" },
+				{ "type": "revert", "section": "Reverts" }
+			]
+		}
+	}
 }

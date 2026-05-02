@@ -1,6 +1,6 @@
-import { test, expect, chromium, type BrowserContext } from "@playwright/test";
-import path from "node:path";
 import { mkdir, readFile } from "node:fs/promises";
+import path from "node:path";
+import { type BrowserContext, chromium, expect, test } from "@playwright/test";
 import { clearStorage, getServiceWorker, seedStorage } from "./helpers";
 
 /**
@@ -9,50 +9,50 @@ import { clearStorage, getServiceWorker, seedStorage } from "./helpers";
 const mins = (n: number) => Date.now() - n * 60 * 1000;
 
 const DEMO_STATE = {
-  plApiKey: "demo-key",
-  plAccounts: [
-    { id: "pl-1", name: "Roth IRA" },
-    { id: "pl-2", name: "Taxable Brokerage" },
-    { id: "pl-3", name: "401(k) Rollover" },
-    { id: "pl-4", name: "HSA" },
-    { id: "pl-5", name: "Checking" },
-  ],
-  plLastRefreshed: mins(3),
-  accounts_vanguard: [
-    { name: "Roth IRA — VTSAX", balance: 48250.12, accountId: "v-1" },
-    { name: "Taxable — VTI", balance: 112800.44, accountId: "v-2" },
-    { name: "Rollover IRA", balance: 217400.08, accountId: "v-3" },
-  ],
-  mappings_vanguard: { "v-1": "pl-1", "v-2": "pl-2", "v-3": "pl-3" },
-  lastRefreshed_vanguard: mins(4),
-  lastSynced_vanguard: mins(4),
-  creds_ynab: { accessToken: "demo-token-placeholder" },
+	plApiKey: "demo-key",
+	plAccounts: [
+		{ id: "pl-1", name: "Roth IRA" },
+		{ id: "pl-2", name: "Taxable Brokerage" },
+		{ id: "pl-3", name: "401(k) Rollover" },
+		{ id: "pl-4", name: "HSA" },
+		{ id: "pl-5", name: "Checking" },
+	],
+	plLastRefreshed: mins(3),
+	accounts_vanguard: [
+		{ name: "Roth IRA — VTSAX", balance: 48250.12, accountId: "v-1" },
+		{ name: "Taxable — VTI", balance: 112800.44, accountId: "v-2" },
+		{ name: "Rollover IRA", balance: 217400.08, accountId: "v-3" },
+	],
+	mappings_vanguard: { "v-1": "pl-1", "v-2": "pl-2", "v-3": "pl-3" },
+	lastRefreshed_vanguard: mins(4),
+	lastSynced_vanguard: mins(4),
+	creds_ynab: { accessToken: "demo-token-placeholder" },
 };
 
 async function launchDemoContext(dsr = 2): Promise<BrowserContext> {
-  const extPath = path.resolve(".output/chrome-mv3");
-  const context = await chromium.launchPersistentContext("", {
-    headless: false,
-    deviceScaleFactor: dsr,
-    viewport: { width: 460, height: 480 },
-    args: [
-      `--disable-extensions-except=${extPath}`,
-      `--load-extension=${extPath}`,
-    ],
-  });
-  const sw = await getServiceWorker(context);
-  await clearStorage(sw);
-  await seedStorage(sw, DEMO_STATE);
-  return context;
+	const extPath = path.resolve(".output/chrome-mv3");
+	const context = await chromium.launchPersistentContext("", {
+		headless: false,
+		deviceScaleFactor: dsr,
+		viewport: { width: 460, height: 480 },
+		args: [
+			`--disable-extensions-except=${extPath}`,
+			`--load-extension=${extPath}`,
+		],
+	});
+	const sw = await getServiceWorker(context);
+	await clearStorage(sw);
+	await seedStorage(sw, DEMO_STATE);
+	return context;
 }
 
 async function iconDataUri(): Promise<string> {
-  const svg = await readFile("public/icon.svg", "utf8");
-  return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+	const svg = await readFile("public/icon.svg", "utf8");
+	return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
 }
 
 function buildSmallPromo(icon: string): string {
-  return `<!doctype html>
+	return `<!doctype html>
 <html>
 <head>
 <style>
@@ -81,7 +81,7 @@ function buildSmallPromo(icon: string): string {
 }
 
 function buildMarqueePromo(icon: string, popupBase64: string): string {
-  return `<!doctype html>
+	return `<!doctype html>
 <html>
 <head>
 <style>
@@ -120,7 +120,7 @@ function buildMarqueePromo(icon: string, popupBase64: string): string {
 }
 
 function buildStoreFrame(popupBase64: string, caption: string): string {
-  return `<!doctype html>
+	return `<!doctype html>
 <html>
 <head>
 <style>
@@ -162,204 +162,204 @@ function buildStoreFrame(popupBase64: string, caption: string): string {
 }
 
 test.describe("Screenshots", () => {
-  test.skip(
-    !process.env.SCREENSHOTS,
-    "Set SCREENSHOTS=true or run `npm run screenshots`",
-  );
+	test.skip(
+		!process.env.SCREENSHOTS,
+		"Set SCREENSHOTS=true or run `npm run screenshots`",
+	);
 
-  test("popup", async () => {
-    const context = await launchDemoContext();
-    try {
-      const sw = await getServiceWorker(context);
-      const extensionId = sw.url().split("/")[2];
-      const page = await context.newPage();
-      await page.goto(`chrome-extension://${extensionId}/popup.html`);
-      await expect(page.getByText("Roth IRA — VTSAX")).toBeVisible();
-      await page.screenshot({ path: "docs/popup.png" });
-    } finally {
-      await context.close();
-    }
-  });
+	test("popup", async () => {
+		const context = await launchDemoContext();
+		try {
+			const sw = await getServiceWorker(context);
+			const extensionId = sw.url().split("/")[2];
+			const page = await context.newPage();
+			await page.goto(`chrome-extension://${extensionId}/popup.html`);
+			await expect(page.getByText("Roth IRA — VTSAX")).toBeVisible();
+			await page.screenshot({ path: "docs/popup.png" });
+		} finally {
+			await context.close();
+		}
+	});
 
-  test("settings", async () => {
-    const context = await launchDemoContext();
-    try {
-      const sw = await getServiceWorker(context);
-      const extensionId = sw.url().split("/")[2];
-      const page = await context.newPage();
-      await page.goto(`chrome-extension://${extensionId}/popup.html`);
-      await page.getByTitle("Settings").click();
-      await expect(page.getByText("ProjectionLab API Key")).toBeVisible();
-      // Unfix body height so the full scrollable settings panel fits in one shot.
-      await page.addStyleTag({
-        content: "body, #root { height: auto !important; min-height: 480px; }",
-      });
-      await page.screenshot({ path: "docs/settings.png", fullPage: true });
-    } finally {
-      await context.close();
-    }
-  });
+	test("settings", async () => {
+		const context = await launchDemoContext();
+		try {
+			const sw = await getServiceWorker(context);
+			const extensionId = sw.url().split("/")[2];
+			const page = await context.newPage();
+			await page.goto(`chrome-extension://${extensionId}/popup.html`);
+			await page.getByTitle("Settings").click();
+			await expect(page.getByText("ProjectionLab API Key")).toBeVisible();
+			// Unfix body height so the full scrollable settings panel fits in one shot.
+			await page.addStyleTag({
+				content: "body, #root { height: auto !important; min-height: 480px; }",
+			});
+			await page.screenshot({ path: "docs/settings.png", fullPage: true });
+		} finally {
+			await context.close();
+		}
+	});
 
-  test("chrome store shots", async () => {
-    // CWS requires 1280x800 JPEG or 24-bit PNG (no alpha). Use DSR=1 for pixel-crisp
-    // popup rendering at its natural 460x480 size inside the 1280x800 frame.
-    const context = await launchDemoContext(1);
-    try {
-      await mkdir("docs/store/chrome", { recursive: true });
-      const sw = await getServiceWorker(context);
-      const extensionId = sw.url().split("/")[2];
+	test("chrome store shots", async () => {
+		// CWS requires 1280x800 JPEG or 24-bit PNG (no alpha). Use DSR=1 for pixel-crisp
+		// popup rendering at its natural 460x480 size inside the 1280x800 frame.
+		const context = await launchDemoContext(1);
+		try {
+			await mkdir("docs/store/chrome", { recursive: true });
+			const sw = await getServiceWorker(context);
+			const extensionId = sw.url().split("/")[2];
 
-      const popup = await context.newPage();
-      await popup.goto(`chrome-extension://${extensionId}/popup.html`);
-      await expect(popup.getByText("Roth IRA — VTSAX")).toBeVisible();
-      const mainShot = await popup.screenshot();
+			const popup = await context.newPage();
+			await popup.goto(`chrome-extension://${extensionId}/popup.html`);
+			await expect(popup.getByText("Roth IRA — VTSAX")).toBeVisible();
+			const mainShot = await popup.screenshot();
 
-      await popup.getByTitle("Settings").click();
-      await expect(popup.getByText("ProjectionLab API Key")).toBeVisible();
-      const settingsShot = await popup.screenshot();
-      await popup.close();
+			await popup.getByTitle("Settings").click();
+			await expect(popup.getByText("ProjectionLab API Key")).toBeVisible();
+			const settingsShot = await popup.screenshot();
+			await popup.close();
 
-      const variants: {
-        path: string;
-        buffer: Buffer;
-        caption: string;
-      }[] = [
-        {
-          path: "docs/store/chrome/01-main.jpg",
-          buffer: mainShot,
-          caption: "Sync account balances into ProjectionLab with one click",
-        },
-        {
-          path: "docs/store/chrome/02-settings.jpg",
-          buffer: settingsShot,
-          caption: "Your credentials stay local — no telemetry, no servers",
-        },
-      ];
+			const variants: {
+				path: string;
+				buffer: Buffer;
+				caption: string;
+			}[] = [
+				{
+					path: "docs/store/chrome/01-main.jpg",
+					buffer: mainShot,
+					caption: "Sync account balances into ProjectionLab with one click",
+				},
+				{
+					path: "docs/store/chrome/02-settings.jpg",
+					buffer: settingsShot,
+					caption: "Your credentials stay local — no telemetry, no servers",
+				},
+			];
 
-      for (const v of variants) {
-        const frame = await context.newPage();
-        await frame.setViewportSize({ width: 1280, height: 800 });
-        await frame.setContent(
-          buildStoreFrame(v.buffer.toString("base64"), v.caption),
-        );
-        // JPEG guarantees 24-bit no-alpha output — CWS's strict requirement.
-        await frame.screenshot({
-          path: v.path,
-          type: "jpeg",
-          quality: 92,
-        });
-        await frame.close();
-      }
+			for (const v of variants) {
+				const frame = await context.newPage();
+				await frame.setViewportSize({ width: 1280, height: 800 });
+				await frame.setContent(
+					buildStoreFrame(v.buffer.toString("base64"), v.caption),
+				);
+				// JPEG guarantees 24-bit no-alpha output — CWS's strict requirement.
+				await frame.screenshot({
+					path: v.path,
+					type: "jpeg",
+					quality: 92,
+				});
+				await frame.close();
+			}
 
-      const icon = await iconDataUri();
-      const promos: {
-        path: string;
-        width: number;
-        height: number;
-        html: string;
-      }[] = [
-        {
-          path: "docs/store/chrome/promo-small.jpg",
-          width: 440,
-          height: 280,
-          html: buildSmallPromo(icon),
-        },
-        {
-          path: "docs/store/chrome/promo-marquee.jpg",
-          width: 1400,
-          height: 560,
-          html: buildMarqueePromo(icon, mainShot.toString("base64")),
-        },
-      ];
+			const icon = await iconDataUri();
+			const promos: {
+				path: string;
+				width: number;
+				height: number;
+				html: string;
+			}[] = [
+				{
+					path: "docs/store/chrome/promo-small.jpg",
+					width: 440,
+					height: 280,
+					html: buildSmallPromo(icon),
+				},
+				{
+					path: "docs/store/chrome/promo-marquee.jpg",
+					width: 1400,
+					height: 560,
+					html: buildMarqueePromo(icon, mainShot.toString("base64")),
+				},
+			];
 
-      for (const p of promos) {
-        const frame = await context.newPage();
-        await frame.setViewportSize({ width: p.width, height: p.height });
-        await frame.setContent(p.html);
-        await frame.screenshot({ path: p.path, type: "jpeg", quality: 92 });
-        await frame.close();
-      }
-    } finally {
-      await context.close();
-    }
-  });
+			for (const p of promos) {
+				const frame = await context.newPage();
+				await frame.setViewportSize({ width: p.width, height: p.height });
+				await frame.setContent(p.html);
+				await frame.screenshot({ path: p.path, type: "jpeg", quality: 92 });
+				await frame.close();
+			}
+		} finally {
+			await context.close();
+		}
+	});
 
-  test("edge store shots", async () => {
-    // Edge Add-ons requires PNG. Sizes match CWS:
-    // screenshots 1280x800, small promo 440x280, large promo 1400x560.
-    const context = await launchDemoContext(1);
-    try {
-      await mkdir("docs/store/edge", { recursive: true });
-      const sw = await getServiceWorker(context);
-      const extensionId = sw.url().split("/")[2];
+	test("edge store shots", async () => {
+		// Edge Add-ons requires PNG. Sizes match CWS:
+		// screenshots 1280x800, small promo 440x280, large promo 1400x560.
+		const context = await launchDemoContext(1);
+		try {
+			await mkdir("docs/store/edge", { recursive: true });
+			const sw = await getServiceWorker(context);
+			const extensionId = sw.url().split("/")[2];
 
-      const popup = await context.newPage();
-      await popup.goto(`chrome-extension://${extensionId}/popup.html`);
-      await expect(popup.getByText("Roth IRA — VTSAX")).toBeVisible();
-      const mainShot = await popup.screenshot();
+			const popup = await context.newPage();
+			await popup.goto(`chrome-extension://${extensionId}/popup.html`);
+			await expect(popup.getByText("Roth IRA — VTSAX")).toBeVisible();
+			const mainShot = await popup.screenshot();
 
-      await popup.getByTitle("Settings").click();
-      await expect(popup.getByText("ProjectionLab API Key")).toBeVisible();
-      const settingsShot = await popup.screenshot();
-      await popup.close();
+			await popup.getByTitle("Settings").click();
+			await expect(popup.getByText("ProjectionLab API Key")).toBeVisible();
+			const settingsShot = await popup.screenshot();
+			await popup.close();
 
-      const frames: {
-        path: string;
-        buffer: Buffer;
-        caption: string;
-      }[] = [
-        {
-          path: "docs/store/edge/01-main.png",
-          buffer: mainShot,
-          caption: "Sync account balances into ProjectionLab with one click",
-        },
-        {
-          path: "docs/store/edge/02-settings.png",
-          buffer: settingsShot,
-          caption: "Your credentials stay local — no telemetry, no servers",
-        },
-      ];
+			const frames: {
+				path: string;
+				buffer: Buffer;
+				caption: string;
+			}[] = [
+				{
+					path: "docs/store/edge/01-main.png",
+					buffer: mainShot,
+					caption: "Sync account balances into ProjectionLab with one click",
+				},
+				{
+					path: "docs/store/edge/02-settings.png",
+					buffer: settingsShot,
+					caption: "Your credentials stay local — no telemetry, no servers",
+				},
+			];
 
-      for (const v of frames) {
-        const frame = await context.newPage();
-        await frame.setViewportSize({ width: 1280, height: 800 });
-        await frame.setContent(
-          buildStoreFrame(v.buffer.toString("base64"), v.caption),
-        );
-        await frame.screenshot({ path: v.path, type: "png" });
-        await frame.close();
-      }
+			for (const v of frames) {
+				const frame = await context.newPage();
+				await frame.setViewportSize({ width: 1280, height: 800 });
+				await frame.setContent(
+					buildStoreFrame(v.buffer.toString("base64"), v.caption),
+				);
+				await frame.screenshot({ path: v.path, type: "png" });
+				await frame.close();
+			}
 
-      const icon = await iconDataUri();
-      const promos: {
-        path: string;
-        width: number;
-        height: number;
-        html: string;
-      }[] = [
-        {
-          path: "docs/store/edge/promo-small.png",
-          width: 440,
-          height: 280,
-          html: buildSmallPromo(icon),
-        },
-        {
-          path: "docs/store/edge/promo-large.png",
-          width: 1400,
-          height: 560,
-          html: buildMarqueePromo(icon, mainShot.toString("base64")),
-        },
-      ];
+			const icon = await iconDataUri();
+			const promos: {
+				path: string;
+				width: number;
+				height: number;
+				html: string;
+			}[] = [
+				{
+					path: "docs/store/edge/promo-small.png",
+					width: 440,
+					height: 280,
+					html: buildSmallPromo(icon),
+				},
+				{
+					path: "docs/store/edge/promo-large.png",
+					width: 1400,
+					height: 560,
+					html: buildMarqueePromo(icon, mainShot.toString("base64")),
+				},
+			];
 
-      for (const p of promos) {
-        const frame = await context.newPage();
-        await frame.setViewportSize({ width: p.width, height: p.height });
-        await frame.setContent(p.html);
-        await frame.screenshot({ path: p.path, type: "png" });
-        await frame.close();
-      }
-    } finally {
-      await context.close();
-    }
-  });
+			for (const p of promos) {
+				const frame = await context.newPage();
+				await frame.setViewportSize({ width: p.width, height: p.height });
+				await frame.setContent(p.html);
+				await frame.screenshot({ path: p.path, type: "png" });
+				await frame.close();
+			}
+		} finally {
+			await context.close();
+		}
+	});
 });

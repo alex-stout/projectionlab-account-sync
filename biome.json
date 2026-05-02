@@ -1,0 +1,73 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.4.14/schema.json",
+	"vcs": {
+		"enabled": true,
+		"clientKind": "git",
+		"useIgnoreFile": true,
+		"defaultBranch": "main"
+	},
+	"files": {
+		"includes": [
+			"**",
+			"!**/.wxt",
+			"!**/.output",
+			"!**/coverage",
+			"!**/playwright-report",
+			"!**/test-results",
+			"!**/dist",
+			"!**/node_modules",
+			"!**/package-lock.json"
+		]
+	},
+	"linter": {
+		"rules": {
+			"recommended": true,
+			"correctness": {
+				"noUnusedImports": "error"
+			},
+			"suspicious": {
+				"noExplicitAny": "warn",
+				"noConsole": "warn"
+			}
+		}
+	},
+	"overrides": [
+		{
+			"includes": ["**/*.test.ts", "**/*.test.tsx", "e2e/**", "tests/**"],
+			"linter": {
+				"rules": {
+					"correctness": {
+						"noEmptyPattern": "off"
+					},
+					"suspicious": {
+						"noExplicitAny": "off",
+						"noConsole": "off"
+					},
+					"style": {
+						"noNonNullAssertion": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["**/mock-site/**/*.html"],
+			"linter": {
+				"rules": {
+					"a11y": {
+						"recommended": false
+					}
+				}
+			}
+		},
+		{
+			"includes": ["package.json"],
+			"assist": {
+				"actions": {
+					"source": {
+						"useSortedKeys": "on"
+					}
+				}
+			}
+		}
+	]
+}

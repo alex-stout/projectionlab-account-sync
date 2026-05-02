@@ -12,7 +12,7 @@
     const updates = {};
 
     window.projectionlabPluginAPI = {
-      exportData: ({ key }) =>
+      exportData: ({ key: _key }) =>
         Promise.resolve({
           today: {
             investmentAccounts: MOCK_ACCOUNTS,
@@ -21,7 +21,7 @@
             debts: [],
           },
         }),
-      updateAccount: (id, { balance }, { key }) => {
+      updateAccount: (id, { balance }, { key: _key }) => {
         updates[id] = balance;
         return Promise.resolve();
       },
