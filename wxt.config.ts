@@ -30,7 +30,7 @@ export default defineConfig({
     host_permissions: [
       "https://app.projectionlab.com/*",
       "https://ea.projectionlab.com/*",
-      "https://dashboard.web.vanguard.com/*",
+      "https://www.vanguard.com/en/investor/portfolio/dashboard/*",
       "https://api.ynab.com/*",
       ...(isE2E ? ["http://localhost:3000/*"] : []),
     ],
