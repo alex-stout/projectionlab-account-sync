@@ -3,7 +3,11 @@ import "@testing-library/jest-dom";
 
 // Mock WXT globals not available outside the extension runtime
 (globalThis as any).browser = {
-  runtime: { sendMessage: vi.fn(), onMessage: { addListener: vi.fn() } },
+  runtime: {
+    sendMessage: vi.fn(),
+    onMessage: { addListener: vi.fn() },
+    getManifest: vi.fn(() => ({ version: "0.0.0-test" })),
+  },
   storage: { local: { get: vi.fn(), set: vi.fn(), remove: vi.fn() } },
   tabs: { query: vi.fn(), sendMessage: vi.fn() },
 };

@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { test, expect } from "./fixtures";
 import {
   clearStorage,
@@ -5,6 +6,10 @@ import {
   getStorage,
   seedStorage,
 } from "./helpers";
+
+const pkgVersion = JSON.parse(
+  readFileSync(new URL("../package.json", import.meta.url), "utf-8"),
+).version as string;
 
 test.beforeEach(async ({ page, popupBaseUrl, context }) => {
   const sw = await getServiceWorker(context);
@@ -90,6 +95,13 @@ test("clicking plugin button from settings returns to main view", async ({
   await page.getByTitle("Vanguard").click();
   await expect(page.getByText("ProjectionLab API Key")).toBeHidden();
   await expect(page.getByRole("button", { name: /↻ Vanguard/ })).toBeVisible();
+});
+
+test("settings panel shows the extension version from the manifest", async ({
+  page,
+}) => {
+  await page.getByTitle("Settings").click();
+  await expect(page.getByText(`v${pkgVersion}`)).toBeVisible();
 });
 
 test("settings panel shows Clear All Data button", async ({ page }) => {
