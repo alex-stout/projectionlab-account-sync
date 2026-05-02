@@ -18,6 +18,7 @@
 		"addons-linter": "^10.4.0",
 		"jsdom": "^29.0.2",
 		"playwright": "^1.59.1",
+		"simple-git-hooks": "^2.13.1",
 		"typescript": "^6.0.3",
 		"vitest": "^4.1.4",
 		"wxt": "^0.20.22"
@@ -40,7 +41,7 @@
 		"lint": "biome lint",
 		"lint:firefox": "npm run build:firefox && addons-linter --self-hosted .output/firefox-mv3",
 		"mock-sites": "vite e2e/mock-sites --port 3000",
-		"postinstall": "wxt prepare",
+		"postinstall": "wxt prepare && simple-git-hooks",
 		"test": "vitest",
 		"test:coverage": "vitest --coverage",
 		"zip": "wxt zip",

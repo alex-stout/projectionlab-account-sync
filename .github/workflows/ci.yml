@@ -14,6 +14,25 @@ permissions:
   contents: read
 
 jobs:
+  biome:
+    name: Format & lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/cache@v4
+        id: cache
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('package-lock.json') }}
+      - run: npm ci
+        if: steps.cache.outputs.cache-hit != 'true'
+      - run: npx biome ci
+
   compile:
     name: Type check
     runs-on: ubuntu-latest
