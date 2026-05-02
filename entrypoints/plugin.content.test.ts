@@ -1,12 +1,14 @@
 import { describe, it, expect } from "vitest";
 import { matchesPattern } from "./plugin.content";
 
+const MATCH_URL = "https://www.vanguard.com/en/investor/portfolio/dashboard/*";
+
 describe("matchesPattern", () => {
   it("matches a simple wildcard pattern", () => {
     expect(
       matchesPattern(
-        "https://dashboard.web.vanguard.com/portfolio",
-        "https://dashboard.web.vanguard.com/*",
+        "https://www.vanguard.com/en/investor/portfolio/dashboard/portfolio",
+        MATCH_URL,
       ),
     ).toBe(true);
   });
@@ -14,8 +16,8 @@ describe("matchesPattern", () => {
   it("matches root path with wildcard", () => {
     expect(
       matchesPattern(
-        "https://dashboard.web.vanguard.com/",
-        "https://dashboard.web.vanguard.com/*",
+        "https://www.vanguard.com/en/investor/portfolio/dashboard/",
+        MATCH_URL,
       ),
     ).toBe(true);
   });
@@ -23,8 +25,8 @@ describe("matchesPattern", () => {
   it("does not match a different domain", () => {
     expect(
       matchesPattern(
-        "https://notreal.com/dashboard.web.vanguard.com/",
-        "https://dashboard.web.vanguard.com/*",
+        "https://notreal.com/www.vanguard.com/en/investor/portfolio/dashboard/",
+        MATCH_URL,
       ),
     ).toBe(false);
   });
@@ -41,8 +43,8 @@ describe("matchesPattern", () => {
   it("does not match wrong scheme", () => {
     expect(
       matchesPattern(
-        "http://dashboard.web.vanguard.com/path",
-        "https://dashboard.web.vanguard.com/*",
+        "http://www.vanguard.com/en/investor/portfolio/dashboard/path",
+        "https://www.vanguard.com/en/investor/portfolio/dashboard/*",
       ),
     ).toBe(false);
   });
