@@ -17,29 +17,28 @@ export default defineContentScript({
 			keepInDom: true,
 		}).catch(() => {});
 
-		browser.runtime.onMessage.addListener(
-			(msg: ContentMessage, _sender: any, sendResponse: (r: any) => void) => {
-				if (msg.type === "FETCH_PL_ACCOUNTS") {
-					const p = ready.then(() =>
-						bridge("pl-ext-fetch-accounts", { apiKey: msg.apiKey }),
-					);
-					if (import.meta.env.BROWSER === "firefox") return p as any;
-					p.then(sendResponse);
-					return true;
-				}
-				if (msg.type === "SYNC_ENTRIES") {
-					const p = ready.then(() =>
-						bridge("pl-ext-sync-entries", {
-							entries: msg.entries,
-							apiKey: msg.apiKey,
-						}),
-					);
-					if (import.meta.env.BROWSER === "firefox") return p as any;
-					p.then(sendResponse);
-					return true;
-				}
-			},
-		);
+		browser.runtime.onMessage.addListener((rawMsg, _sender, sendResponse) => {
+			const msg = rawMsg as ContentMessage;
+			if (msg.type === "FETCH_PL_ACCOUNTS") {
+				const p = ready.then(() =>
+					bridge("pl-ext-fetch-accounts", { apiKey: msg.apiKey }),
+				);
+				if (import.meta.env.BROWSER === "firefox") return p;
+				p.then(sendResponse);
+				return true;
+			}
+			if (msg.type === "SYNC_ENTRIES") {
+				const p = ready.then(() =>
+					bridge("pl-ext-sync-entries", {
+						entries: msg.entries,
+						apiKey: msg.apiKey,
+					}),
+				);
+				if (import.meta.env.BROWSER === "firefox") return p;
+				p.then(sendResponse);
+				return true;
+			}
+		});
 	},
 });
 

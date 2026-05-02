@@ -12,6 +12,11 @@ import type { Account } from "~/types";
 
 type SyncEntry = { plId: string; balance: number; name: string };
 
+type BgMessage =
+	| { type: "SYNC_SOURCE"; sourceId: string }
+	| { type: "FETCH_PL_ACCOUNTS" }
+	| { type: "SYNC_TO_PL"; sourceId: string };
+
 export async function getPlTab() {
 	for (const url of PL_MATCHES) {
 		const tabs = await browser.tabs.query({ url });
@@ -35,7 +40,7 @@ async function getApiKey(): Promise<string> {
 	return (stored[plApiKey] as string) || "";
 }
 
-async function handleMessage(msg: any): Promise<any> {
+async function handleMessage(msg: BgMessage): Promise<unknown> {
 	if (msg.type === "SYNC_SOURCE") {
 		const plugin = PLUGINS.find((p) => p.id === msg.sourceId);
 		if (!plugin) return { error: `Unknown plugin: ${msg.sourceId}` };
@@ -173,10 +178,8 @@ async function handleMessage(msg: any): Promise<any> {
 }
 
 export default defineBackground(() => {
-	browser.runtime.onMessage.addListener(
-		(msg: any, _sender: any, sendResponse: (r: any) => void) => {
-			handleMessage(msg).then(sendResponse);
-			return true;
-		},
-	);
+	browser.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+		handleMessage(msg as BgMessage).then(sendResponse);
+		return true;
+	});
 });

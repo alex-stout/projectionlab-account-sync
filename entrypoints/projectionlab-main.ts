@@ -15,7 +15,7 @@ type PlExportData = {
 // Has access to window.projectionlabPluginAPI. No browser extension APIs available.
 export default defineUnlistedScript(() => {
 	async function handleFetchAccounts(id: string, apiKey: string) {
-		const api = (window as any).projectionlabPluginAPI;
+		const api = window.projectionlabPluginAPI;
 		if (!api) {
 			dispatch(id, {
 				error:
@@ -52,7 +52,7 @@ export default defineUnlistedScript(() => {
 		entries: SyncEntry[],
 		apiKey: string,
 	) {
-		const api = (window as any).projectionlabPluginAPI;
+		const api = window.projectionlabPluginAPI;
 		if (!api) {
 			dispatch(id, { error: "ProjectionLab Plugin API not found." });
 			return;
