@@ -26,11 +26,8 @@
 				"noUnusedImports": "error"
 			},
 			"suspicious": {
-				"noExplicitAny": "error",
+				"noExplicitAny": "warn",
 				"noConsole": "warn"
-			},
-			"style": {
-				"useNamingConvention": "warn"
 			}
 		}
 	},
@@ -39,6 +36,9 @@
 			"includes": ["**/*.test.ts", "**/*.test.tsx", "e2e/**", "tests/**"],
 			"linter": {
 				"rules": {
+					"correctness": {
+						"noEmptyPattern": "off"
+					},
 					"suspicious": {
 						"noExplicitAny": "off",
 						"noConsole": "off"

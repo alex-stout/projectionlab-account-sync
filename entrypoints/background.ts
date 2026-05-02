@@ -54,11 +54,10 @@ async function handleMessage(msg: any): Promise<any> {
 				};
 			}
 
-			let tabResult: {
-				ok: boolean;
-				payload?: Account[];
-				error?: string;
-			} | null;
+			let tabResult:
+				| { ok: true; payload: Account[] }
+				| { ok: false; error?: string }
+				| null;
 			try {
 				tabResult = await browser.tabs.sendMessage(tab.id, {
 					type: "SYNC_REQUEST",
@@ -74,7 +73,7 @@ async function handleMessage(msg: any): Promise<any> {
 						`Failed to read data from ${plugin.name}. Try refreshing the page.`,
 				};
 			}
-			accounts = tabResult.payload!;
+			accounts = tabResult.payload;
 		} else {
 			const stored = await browser.storage.local.get(credsKey(plugin.id));
 			const creds =

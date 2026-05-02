@@ -112,17 +112,13 @@ describe("Sidebar", () => {
 	});
 
 	it("shows amber dot on gear button when hasApiKey is false", () => {
-		const { container } = render(
-			<Sidebar {...defaultProps} hasApiKey={false} />,
-		);
+		render(<Sidebar {...defaultProps} hasApiKey={false} />);
 		const settingsBtn = screen.getByTitle("Settings");
 		expect(settingsBtn.querySelector(".bg-amber-400")).toBeInTheDocument();
 	});
 
 	it("does not show amber dot when hasApiKey is true", () => {
-		const { container } = render(
-			<Sidebar {...defaultProps} hasApiKey={true} />,
-		);
+		render(<Sidebar {...defaultProps} hasApiKey={true} />);
 		const settingsBtn = screen.getByTitle("Settings");
 		expect(settingsBtn.querySelector(".bg-amber-400")).not.toBeInTheDocument();
 	});

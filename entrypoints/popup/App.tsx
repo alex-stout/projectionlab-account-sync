@@ -151,11 +151,11 @@ export default function Popup() {
 						disabledPlugins={disabledPlugins}
 						onTogglePlugin={handleTogglePlugin}
 					/>
-				) : (
+				) : activePlugin ? (
 					<>
 						<div className="h-11.5 flex items-center px-4 border-b border-gray-100 shrink-0">
 							<span className="font-semibold text-gray-800 text-sm">
-								{activePlugin?.name}
+								{activePlugin.name}
 							</span>
 							<span className="mx-2 text-gray-300">→</span>
 							<span className="font-semibold text-gray-800 text-sm">
@@ -164,15 +164,15 @@ export default function Popup() {
 						</div>
 
 						<SourcePanel
-							key={activePlugin?.id}
-							plugin={activePlugin!}
+							key={activePlugin.id}
+							plugin={activePlugin}
 							plAccounts={plAccounts}
-							lastRefreshed={lastRefreshed[activePlugin?.id] ?? null}
-							onSynced={() => handleSynced(activePlugin?.id)}
-							onRefreshed={() => handleRefreshed(activePlugin?.id)}
+							lastRefreshed={lastRefreshed[activePlugin.id] ?? null}
+							onSynced={() => handleSynced(activePlugin.id)}
+							onRefreshed={() => handleRefreshed(activePlugin.id)}
 						/>
 					</>
-				)}
+				) : null}
 			</div>
 		</div>
 	);
