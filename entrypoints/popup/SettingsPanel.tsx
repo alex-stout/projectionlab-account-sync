@@ -95,10 +95,14 @@ export default function SettingsPanel({
 		<div className="flex flex-col flex-1 min-h-0 p-4 overflow-y-auto">
 			<h2 className="text-sm font-semibold text-gray-800 mb-5">Settings</h2>
 
-			<label className="text-xs font-medium text-gray-600 mb-1.5">
+			<label
+				htmlFor="pl-api-key"
+				className="text-xs font-medium text-gray-600 mb-1.5"
+			>
 				ProjectionLab API Key
 			</label>
 			<input
+				id="pl-api-key"
 				type="password"
 				value={key}
 				onChange={(e) => {
@@ -114,6 +118,7 @@ export default function SettingsPanel({
 
 			<div className="flex gap-2 mb-6">
 				<button
+					type="button"
 					onClick={handleSave}
 					disabled={!key.trim()}
 					className="flex-1 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 disabled:opacity-35 text-white py-2 rounded-lg text-sm font-semibold transition-colors"
@@ -122,6 +127,7 @@ export default function SettingsPanel({
 				</button>
 				{key && (
 					<button
+						type="button"
 						onClick={handleClear}
 						className="px-3 py-2 text-xs text-gray-400 hover:text-red-500 transition-colors"
 					>
@@ -139,6 +145,7 @@ export default function SettingsPanel({
 				</p>
 				<div className="flex items-center gap-3 mb-3">
 					<button
+						type="button"
 						onClick={onRefreshPL}
 						disabled={plLoading}
 						className="text-xs text-indigo-600 hover:text-indigo-700 disabled:opacity-40 font-medium"
@@ -206,6 +213,7 @@ export default function SettingsPanel({
 					Removes all cached accounts, mappings, sync history, and credentials.
 				</p>
 				<button
+					type="button"
 					onClick={handleClearData}
 					className="text-xs text-red-500 hover:text-red-700 font-medium transition-colors"
 				>
@@ -260,27 +268,35 @@ function ApiPluginCreds({ plugin, onCredsChange }: CredsProps) {
 			<p className="text-xs font-medium text-gray-600 mb-3">
 				{plugin.name} Credentials
 			</p>
-			{plugin.credentials.map((f) => (
-				<div key={f.key} className="mb-3">
-					<label className="text-xs font-medium text-gray-600 mb-1.5 block">
-						{f.label}
-					</label>
-					<input
-						type={f.type}
-						value={values[f.key] ?? ""}
-						onChange={(e) => {
-							setValues((prev) => ({ ...prev, [f.key]: e.target.value }));
-							setSaved(false);
-						}}
-						className="w-full text-xs border border-gray-200 rounded-md px-3 py-2 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400"
-					/>
-					{f.help && (
-						<p className="text-[11px] text-gray-400 mt-1.5">{f.help}</p>
-					)}
-				</div>
-			))}
+			{plugin.credentials.map((f) => {
+				const inputId = `${plugin.id}-${f.key}`;
+				return (
+					<div key={f.key} className="mb-3">
+						<label
+							htmlFor={inputId}
+							className="text-xs font-medium text-gray-600 mb-1.5 block"
+						>
+							{f.label}
+						</label>
+						<input
+							id={inputId}
+							type={f.type}
+							value={values[f.key] ?? ""}
+							onChange={(e) => {
+								setValues((prev) => ({ ...prev, [f.key]: e.target.value }));
+								setSaved(false);
+							}}
+							className="w-full text-xs border border-gray-200 rounded-md px-3 py-2 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400"
+						/>
+						{f.help && (
+							<p className="text-[11px] text-gray-400 mt-1.5">{f.help}</p>
+						)}
+					</div>
+				);
+			})}
 			<div className="flex gap-2">
 				<button
+					type="button"
 					onClick={handleSave}
 					disabled={!hasAll}
 					className="flex-1 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 disabled:opacity-35 text-white py-2 rounded-lg text-sm font-semibold transition-colors"
@@ -289,6 +305,7 @@ function ApiPluginCreds({ plugin, onCredsChange }: CredsProps) {
 				</button>
 				{hasAny && (
 					<button
+						type="button"
 						onClick={handleClear}
 						className="px-3 py-2 text-xs text-gray-400 hover:text-red-500 transition-colors"
 					>

@@ -20,6 +20,7 @@ export default function PanelHeader({
 			</span>
 			<div className="flex items-center gap-1.5">
 				<button
+					type="button"
 					onClick={onRefreshSource}
 					disabled={loading}
 					className="text-[11px] text-indigo-500 hover:text-indigo-700 disabled:opacity-40 font-medium"

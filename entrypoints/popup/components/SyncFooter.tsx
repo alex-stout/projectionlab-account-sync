@@ -31,6 +31,7 @@ export default function SyncFooter({
 				)}
 			</div>
 			<button
+				type="button"
 				onClick={onSync}
 				disabled={!canSync}
 				className="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white py-2.5 rounded-lg font-semibold disabled:opacity-35 transition-colors text-sm"
@@ -44,17 +45,17 @@ export default function SyncFooter({
 			)}
 			{plSync.status === "done" && (
 				<div className="space-y-1">
-					{plSync.results.map((r, i) =>
+					{plSync.results.map((r) =>
 						r.ok ? (
 							<div
-								key={i}
+								key={r.name}
 								className="text-[11px] text-green-700 flex items-center gap-1.5"
 							>
 								<span className="text-green-500">✓</span> {r.name}
 							</div>
 						) : (
 							<div
-								key={i}
+								key={r.name}
 								className="text-[11px] text-red-600 flex items-center gap-1.5"
 							>
 								<span>✗</span> {r.name}: {r.error}

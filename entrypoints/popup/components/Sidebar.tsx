@@ -38,6 +38,7 @@ export default function Sidebar({
 					return (
 						<button
 							key={plugin.id}
+							type="button"
 							onClick={() => onSelect(plugin.id)}
 							title={plugin.name}
 							className={`relative flex flex-col items-center gap-1 py-2.5 px-1 rounded-lg w-full transition-colors ${
@@ -73,6 +74,7 @@ export default function Sidebar({
 
 			<div className="p-2 border-t border-slate-700">
 				<button
+					type="button"
 					onClick={onSettings}
 					title="Settings"
 					className={`relative flex flex-col items-center gap-1 py-2.5 px-1 rounded-lg w-full transition-colors ${
@@ -86,6 +88,7 @@ export default function Sidebar({
 						viewBox="0 0 24 24"
 						fill="currentColor"
 						className="w-6 h-6"
+						aria-hidden="true"
 					>
 						<path
 							fillRule="evenodd"
