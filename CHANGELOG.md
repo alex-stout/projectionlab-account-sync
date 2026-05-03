@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.7.0](https://github.com/alex-stout/projectionlab-account-sync/compare/v0.6.0...v0.7.0) (2026-05-03)
+
+
+### Features
+
+* **settings:** show version number ([#36](https://github.com/alex-stout/projectionlab-account-sync/issues/36)) ([bbace66](https://github.com/alex-stout/projectionlab-account-sync/commit/bbace665bef2c0856210d401ce6e721ceb5cd806))
+
+
+### Bug Fixes
+
+* **vanguard:** dashboard url ([#37](https://github.com/alex-stout/projectionlab-account-sync/issues/37)) ([fd66bde](https://github.com/alex-stout/projectionlab-account-sync/commit/fd66bde16394bf0bc81a7edf358b7e55509da9eb))
+
 ## [0.6.0](https://github.com/alex-stout/projectionlab-account-sync/compare/v0.5.1...v0.6.0) (2026-04-29)
 
 ### Highlights
