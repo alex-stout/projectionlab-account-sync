@@ -41,7 +41,7 @@ test("switches active plugin when sidebar button clicked", async ({ page }) => {
 });
 
 test("shows empty state with refresh prompt for Vanguard", async ({ page }) => {
-	await expect(page.getByText(/Open Vanguard/)).toBeVisible();
+	await expect(page.getByText(/Navigate to the holdings tab/)).toBeVisible();
 });
 
 test("shows source refresh button in panel header", async ({ page }) => {
