@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/alex-stout/projectionlab-account-sync/compare/v0.7.0...v0.7.1) (2026-05-04)
+
+
+### Bug Fixes
+
+* **vanguard:** update plugin to use holdings page ([#43](https://github.com/alex-stout/projectionlab-account-sync/issues/43)) ([e2d32b8](https://github.com/alex-stout/projectionlab-account-sync/commit/e2d32b8de9f267bd40c32dd16330e417b3ac7c9d))
+
 ## [0.7.0](https://github.com/alex-stout/projectionlab-account-sync/compare/v0.6.0...v0.7.0) (2026-05-03)
 
 
