@@ -30,8 +30,10 @@ test("refreshes Vanguard accounts from mock tab", async ({
 
 	await expect(popup.getByText("Roth IRA")).toBeVisible({ timeout: 10_000 });
 	await expect(popup.getByText("Traditional 401k")).toBeVisible();
+	await expect(popup.getByText("529 College Savings")).toBeVisible();
 	await expect(popup.getByText("$1,200")).toBeVisible();
 	await expect(popup.getByText("$1,850")).toBeVisible();
+	await expect(popup.getByText("$1,500")).toBeVisible();
 });
 
 test("loads ProjectionLab accounts into dropdowns from mock tab", async ({
@@ -74,6 +76,7 @@ test("full sync: Vanguard → ProjectionLab", async ({
 	await popup.getByRole("button", { name: /↻ Vanguard/ }).click();
 	await expect(popup.getByText("Roth IRA")).toBeVisible({ timeout: 10_000 });
 	await expect(popup.getByText("Traditional 401k")).toBeVisible();
+	await expect(popup.getByText("529 College Savings")).toBeVisible();
 
 	// Step 2: open PL tab then pull PL accounts from Settings
 	await openMockTab(context, PL_URL);
@@ -84,16 +87,19 @@ test("full sync: Vanguard → ProjectionLab", async ({
 	const selects = popup.locator("select");
 	await expect(selects.first()).toBeEnabled({ timeout: 10_000 });
 
-	// Step 3: map both accounts
+	// Step 3: map all three accounts (including the outside investment)
 	await selects.nth(0).selectOption("pl-roth-ira");
 	await selects.nth(1).selectOption("pl-401k");
+	await selects.nth(2).selectOption("pl-529");
 
 	// Step 4: sync
 	await popup.getByRole("button", { name: "Sync to ProjectionLab" }).click();
 
-	// Step 5: verify results
+	// Step 5: verify results — outside investment proves the sync covers
+	// accounts whose ids come from `scroll-to-id` (no `data-testid`).
 	await expect(popup.getByText(/✓.*Roth IRA/)).toBeVisible({ timeout: 10_000 });
 	await expect(popup.getByText(/✓.*Traditional 401k/)).toBeVisible();
+	await expect(popup.getByText(/✓.*529 College Savings/)).toBeVisible();
 });
 
 test("refreshes Alight accounts from mock tab", async ({

@@ -5,15 +5,23 @@
   <title>Mock Vanguard</title>
 </head>
 <body>
-  <div class="individual-account-container">
-    <a class="account-holdings-link" href="?ss-accountIds=111">Roth IRA</a>
-    <div class="balance"><span>$1,200.00</span></div>
-    <div class="rate-of-return"><span>7.5%</span></div>
-  </div>
-  <div class="individual-account-container">
-    <a class="account-holdings-link" href="?ss-accountIds=222">Traditional 401k</a>
-    <div class="balance"><span>$1,850.00</span></div>
-    <div class="rate-of-return"><span>10.2%</span></div>
-  </div>
+  <c11n-accordion scroll-to-id="111">
+    <button class="c11n-accordion__trigger">
+      <span class="c11n-accordion__heading">Roth IRA</span>
+      <span class="c11n-accordion__content">$1,200.00</span>
+    </button>
+  </c11n-accordion>
+  <c11n-accordion scroll-to-id="222">
+    <button class="c11n-accordion__trigger">
+      <span class="c11n-accordion__heading">Traditional 401k</span>
+      <span class="c11n-accordion__content">$1,850.00</span>
+    </button>
+  </c11n-accordion>
+  <c11n-accordion scroll-to-id="333">
+    <button class="c11n-accordion__trigger">
+      <span class="c11n-accordion__heading">529 College Savings</span>
+      <span class="c11n-accordion__content">$1,500.00</span>
+    </button>
+  </c11n-accordion>
 </body>
 </html>

@@ -1,21 +1,25 @@
 import { createMain, parseMoney, queryDeep } from "../content-utils";
 import vanguard from "./index";
 
-export function extractAccountId(href?: string) {
-	if (!href) return null;
-	const match = href.match(/ss-accountIds=(\d+)/);
-	return match ? match[1] : null;
+export function extractAccountId(scrollToId?: string | null) {
+	return scrollToId?.trim() || null;
+}
+
+// Remove trailing * from account names
+export function cleanName(raw: string): string {
+	return raw.replace(/\s*-\s*\d+\*\s*$/, "").trim();
 }
 
 export function extractPortfolio() {
-	return queryDeep(".individual-account-container").flatMap((container) => {
-		const nameEl = container.querySelector(".account-holdings-link");
-		let href: string | null = null;
-		if (nameEl instanceof HTMLAnchorElement) href = nameEl.href;
-
-		const name = nameEl?.textContent?.trim();
+	return queryDeep("c11n-accordion[scroll-to-id]").flatMap((container) => {
+		const rawName = container
+			.querySelector(".c11n-accordion__heading")
+			?.textContent?.trim();
+		const name = rawName ? cleanName(rawName) : undefined;
 		const balance = parseMoney(
-			container.querySelector(".balance span")?.textContent?.trim() ?? null,
+			container
+				.querySelector(".c11n-accordion__content")
+				?.textContent?.trim() ?? null,
 		);
 
 		if (!name || balance === null) return [];
@@ -24,7 +28,7 @@ export function extractPortfolio() {
 			{
 				name,
 				balance,
-				accountId: extractAccountId(href ?? undefined),
+				accountId: extractAccountId(container.getAttribute("scroll-to-id")),
 			},
 		];
 	});

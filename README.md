@@ -15,7 +15,7 @@ A Chrome/Firefox browser extension that syncs account balances from financial in
 
 ## Supported sources
 
-- **Vanguard** — scrapes balances from the portfolio overview page
+- **Vanguard** — scrapes balances from the holdings tab
 - **Alight** — scrapes balances from the retirement overview page
 - **Monarch** — scrapes balances from the Accounts page
 - **YNAB** — fetches balances via the YNAB API using a Personal Access Token

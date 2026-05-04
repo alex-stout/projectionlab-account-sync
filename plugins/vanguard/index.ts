@@ -6,8 +6,9 @@ const plugin: SourcePlugin = {
 	name: "Vanguard",
 	icon,
 	kind: "content",
+	hint: "Navigate to the holdings tab, then click ↻ Vanguard.",
 	urlPatterns: [
-		"https://www.vanguard.com/en/investor/portfolio/dashboard/*",
+		"https://www.vanguard.com/en/investor/portfolio/investments/*",
 		/* v8 ignore start -- E2E-only URL, covered by the mock-site E2E suite. */
 		...(__E2E__ ? ["http://localhost:3000/vanguard/*"] : []),
 		/* v8 ignore stop */
