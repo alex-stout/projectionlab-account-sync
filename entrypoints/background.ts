@@ -1,16 +1,15 @@
-import { PL_MATCHES } from "~/lib/urls";
 import {
-	accountsKey,
-	credsKey,
-	lastRefreshedKey,
-	lastSyncedKey,
-	mappingsKey,
-	PLUGINS,
-	plApiKey,
-} from "~/plugins";
-import type { Account } from "~/types";
-
-type SyncEntry = { plId: string; balance: number; name: string };
+	getAccounts,
+	getCreds,
+	getMappingKey,
+	getMappings,
+	getPlApiKey,
+	setAccounts,
+	setLastSynced,
+} from "~/lib/storage";
+import { PL_MATCHES } from "~/lib/urls";
+import { PLUGINS } from "~/plugins";
+import type { Account, SyncEntry } from "~/types";
 
 type BgMessage =
 	| { type: "SYNC_SOURCE"; sourceId: string }
@@ -33,11 +32,6 @@ export async function getSourceTab(sourceId: string) {
 		if (tabs.length > 0) return tabs[0];
 	}
 	return null;
-}
-
-async function getApiKey(): Promise<string> {
-	const stored = await browser.storage.local.get(plApiKey);
-	return (stored[plApiKey] as string) || "";
 }
 
 async function handleMessage(msg: BgMessage): Promise<unknown> {
@@ -80,9 +74,7 @@ async function handleMessage(msg: BgMessage): Promise<unknown> {
 			}
 			accounts = tabResult.payload;
 		} else {
-			const stored = await browser.storage.local.get(credsKey(plugin.id));
-			const creds =
-				(stored[credsKey(plugin.id)] as Record<string, string>) ?? {};
+			const creds = await getCreds(plugin.id);
 			const missing = plugin.credentials.filter((f) => !creds[f.key]?.trim());
 			if (missing.length > 0) {
 				return {
@@ -101,16 +93,13 @@ async function handleMessage(msg: BgMessage): Promise<unknown> {
 			}
 		}
 
-		await browser.storage.local.set({
-			[accountsKey(msg.sourceId)]: accounts,
-			[lastRefreshedKey(msg.sourceId)]: Date.now(),
-		});
+		await setAccounts(msg.sourceId, accounts);
 
 		return { ok: true, accounts };
 	}
 
 	if (msg.type === "FETCH_PL_ACCOUNTS") {
-		const apiKey = await getApiKey();
+		const apiKey = await getPlApiKey();
 		if (!apiKey)
 			return {
 				error:
@@ -127,7 +116,7 @@ async function handleMessage(msg: BgMessage): Promise<unknown> {
 	}
 
 	if (msg.type === "SYNC_TO_PL") {
-		const apiKey = await getApiKey();
+		const apiKey = await getPlApiKey();
 		if (!apiKey)
 			return {
 				error:
@@ -139,18 +128,15 @@ async function handleMessage(msg: BgMessage): Promise<unknown> {
 			return { error: "ProjectionLab is not open. Open it and try again." };
 		}
 
-		const storage = await browser.storage.local.get([
-			accountsKey(sourceId),
-			mappingsKey(sourceId),
+		const [accounts, mappings] = await Promise.all([
+			getAccounts(sourceId),
+			getMappings(sourceId),
 		]);
-		const accounts = (storage[accountsKey(sourceId)] as Account[]) ?? [];
-		const mappings =
-			(storage[mappingsKey(sourceId)] as Record<string, string>) ?? {};
 
 		const entries: SyncEntry[] = accounts
 			.map((acc) => {
-				const key = acc.accountId ?? acc.name;
-				const plId = mappings[key];
+				const plId = mappings[getMappingKey(acc)];
+
 				return plId && acc.balance !== null
 					? { plId, balance: acc.balance, name: acc.name }
 					: null;
@@ -168,9 +154,7 @@ async function handleMessage(msg: BgMessage): Promise<unknown> {
 		});
 
 		if (result && !result.error) {
-			await browser.storage.local.set({
-				[lastSyncedKey(sourceId)]: Date.now(),
-			});
+			await setLastSynced(sourceId);
 		}
 
 		return result;

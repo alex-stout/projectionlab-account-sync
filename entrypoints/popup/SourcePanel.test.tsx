@@ -133,9 +133,15 @@ describe("SourcePanel", () => {
 	});
 
 	it("loads accounts and calls onRefreshed after successful source refresh", async () => {
+		const refreshed = [{ name: "IRA", balance: 5000, accountId: null }];
 		vi.mocked(browser.runtime.sendMessage).mockResolvedValue({
 			ok: true,
-			accounts: [{ name: "IRA", balance: 5000, accountId: null }],
+			accounts: refreshed,
+		} as any);
+
+		// Mirror the real background's SYNC_SOURCE side effect
+		vi.mocked(browser.storage.local.get).mockResolvedValue({
+			accounts_vanguard: refreshed,
 		} as any);
 		const onRefreshed = vi.fn();
 		render(<SourcePanel {...defaults} onRefreshed={onRefreshed} />);

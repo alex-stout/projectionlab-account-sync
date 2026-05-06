@@ -1,6 +1,5 @@
-import type { SyncResult } from "~/types";
+import type { SyncEntry, SyncResult } from "~/types";
 
-type SyncEntry = { plId: string; balance: number; name: string };
 type PlApiAccount = { id: string; name: string };
 type PlExportData = {
 	today?: {
