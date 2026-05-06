@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
 import {
-	credsKey,
-	disabledPluginsKey,
-	lastRefreshedKey,
-	lastSyncedKey,
-	PLUGINS,
-	plApiKey,
-	plLastRefreshedKey,
-} from "~/plugins";
+	getAppHydration,
+	getCreds,
+	setDisabledPlugins as persistDisabledPlugins,
+	setPLAccounts as persistPlAccounts,
+} from "~/lib/storage";
+import { PLUGINS } from "~/plugins";
 import type { PlAccount } from "~/types";
 import Sidebar from "./components/Sidebar";
 import SettingsPanel from "./SettingsPanel";
@@ -29,44 +27,32 @@ export default function Popup() {
 	const [disabledPlugins, setDisabledPlugins] = useState<string[]>([]);
 
 	useEffect(() => {
-		const keys = [
-			"plAccounts",
-			plApiKey,
-			plLastRefreshedKey,
-			disabledPluginsKey,
-			...PLUGINS.map((p) => lastSyncedKey(p.id)),
-			...PLUGINS.map((p) => lastRefreshedKey(p.id)),
-		];
-		browser.storage.local.get(keys).then((storage) => {
-			setHasApiKey(!!storage[plApiKey]);
-			setPlAccounts((storage.plAccounts as PlAccount[]) ?? []);
-			setPlLastRefreshed((storage[plLastRefreshedKey] as number) ?? null);
-			setDisabledPlugins((storage[disabledPluginsKey] as string[]) ?? []);
-			const synced: Record<string, number> = {};
-			const refreshed: Record<string, number> = {};
-			for (const p of PLUGINS) {
-				if (storage[lastSyncedKey(p.id)])
-					synced[p.id] = storage[lastSyncedKey(p.id)] as number;
-				if (storage[lastRefreshedKey(p.id)])
-					refreshed[p.id] = storage[lastRefreshedKey(p.id)] as number;
-			}
-			setLastSynced(synced);
-			setLastRefreshed(refreshed);
+		getAppHydration().then((state) => {
+			setHasApiKey(state.hasApiKey);
+			setPlAccounts(state.plAccounts);
+			setPlLastRefreshed(state.plLastRefreshed);
+			setDisabledPlugins(state.disabledPlugins);
+			setLastSynced(state.lastSynced);
+			setLastRefreshed(state.lastRefreshed);
 		});
 
 		Promise.all(
-			PLUGINS.map(async (p) => {
-				if (p.kind === "api") {
-					const stored = await browser.storage.local.get(credsKey(p.id));
-					const creds =
-						(stored[credsKey(p.id)] as Record<string, string>) ?? {};
-					const hasAll = p.credentials.every((f) => !!creds[f.key]?.trim());
-					return [p.id, hasAll] as const;
+			PLUGINS.map(async (plugin) => {
+				if (plugin.kind === "api") {
+					const creds = await getCreds(plugin.id);
+
+					const hasAll = plugin.credentials.every(
+						(f) => !!creds[f.key]?.trim(),
+					);
+
+					return [plugin.id, hasAll] as const;
 				}
+
 				const tabs = await Promise.all(
-					p.urlPatterns.map((url) => browser.tabs.query({ url })),
+					plugin.urlPatterns.map((url) => browser.tabs.query({ url })),
 				);
-				return [p.id, tabs.flat().length > 0] as const;
+
+				return [plugin.id, tabs.flat().length > 0] as const;
 			}),
 		).then((entries) => setAvailable(Object.fromEntries(entries)));
 	}, []);
@@ -78,13 +64,9 @@ export default function Popup() {
 			type: "FETCH_PL_ACCOUNTS",
 		})) as { accounts?: PlAccount[]; error?: string };
 		if (response?.accounts) {
-			const ts = Date.now();
 			setPlAccounts(response.accounts);
-			setPlLastRefreshed(ts);
-			await browser.storage.local.set({
-				plAccounts: response.accounts,
-				[plLastRefreshedKey]: ts,
-			});
+			setPlLastRefreshed(Date.now());
+			await persistPlAccounts(response.accounts);
 		} else if (response?.error) {
 			setPlError(response.error);
 		}
@@ -104,7 +86,7 @@ export default function Popup() {
 			? disabledPlugins.filter((id) => id !== pluginId)
 			: [...disabledPlugins, pluginId];
 		setDisabledPlugins(next);
-		await browser.storage.local.set({ [disabledPluginsKey]: next });
+		await persistDisabledPlugins(next);
 	};
 
 	const enabledPlugins = PLUGINS.filter((p) => !disabledPlugins.includes(p.id));

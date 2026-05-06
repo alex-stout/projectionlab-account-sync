@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
-import { accountsKey, mappingsKey, type SourcePlugin } from "~/plugins";
-import type { Account, PlAccount, PlSyncState, SyncResult } from "~/types";
+import { getSourceState, setMappings as persistMappings } from "~/lib/storage";
+import type { SourcePlugin } from "~/plugins";
+import type {
+	Account,
+	PLMappings,
+	PlAccount,
+	PlSyncState,
+	SyncResult,
+} from "~/types";
 import AccountList from "./components/AccountList";
 import PanelHeader from "./components/PanelHeader";
 import SyncFooter from "./components/SyncFooter";
@@ -22,20 +29,16 @@ export default function SourcePanel({
 	onRefreshed,
 }: Props) {
 	const [accounts, setAccounts] = useState<Account[]>([]);
-	const [mappings, setMappings] = useState<Record<string, string>>({});
+	const [mappings, setPLMappings] = useState<PLMappings>({});
 	const [loading, setLoading] = useState(false);
 	const [sourceError, setSourceError] = useState<string | null>(null);
 	const [plSync, setPlSync] = useState<PlSyncState>({ status: "idle" });
 
 	useEffect(() => {
-		browser.storage.local
-			.get([accountsKey(plugin.id), mappingsKey(plugin.id)])
-			.then((storage) => {
-				setAccounts((storage[accountsKey(plugin.id)] as Account[]) ?? []);
-				setMappings(
-					(storage[mappingsKey(plugin.id)] as Record<string, string>) ?? {},
-				);
-			});
+		getSourceState(plugin.id).then((state) => {
+			setAccounts(state.accounts);
+			setPLMappings(state.mappings);
+		});
 		setPlSync({ status: "idle" });
 		setSourceError(null);
 	}, [plugin.id]);
@@ -73,9 +76,12 @@ export default function SourcePanel({
 
 	const handleMappingChange = async (vKey: string, plId: string) => {
 		const next = { ...mappings, [vKey]: plId };
+
 		if (!plId) delete next[vKey];
-		setMappings(next);
-		await browser.storage.local.set({ [mappingsKey(plugin.id)]: next });
+
+		setPLMappings(next);
+
+		await persistMappings(plugin.id, next);
 	};
 
 	const handleSync = async () => {

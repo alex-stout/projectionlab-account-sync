@@ -157,6 +157,11 @@ describe("App", () => {
 			const arr: string[] = Array.isArray(keys) ? keys : [keys];
 			const result: any = {};
 			if (arr.includes("accounts_vanguard")) result.accounts_vanguard = [];
+
+			// Mirror the real background's SYNC_SOURCE side effect
+			if (arr.includes("lastRefreshed_vanguard"))
+				result.lastRefreshed_vanguard = Date.now();
+
 			return Promise.resolve(result);
 		});
 		render(<App />);
