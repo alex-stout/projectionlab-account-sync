@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/alex-stout/projectionlab-account-sync/compare/v0.7.1...v0.8.0) (2026-05-06)
+
+
+### Features
+
+* **sync:** additive sync from multiple sources to one PL acct ([#48](https://github.com/alex-stout/projectionlab-account-sync/issues/48)) ([77516aa](https://github.com/alex-stout/projectionlab-account-sync/commit/77516aa2e94fd757e7897e163ce13f5da37fae15))
+
 ## [0.7.1](https://github.com/alex-stout/projectionlab-account-sync/compare/v0.7.0...v0.7.1) (2026-05-04)
 
 

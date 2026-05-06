@@ -48,5 +48,5 @@
 		"zip:firefox": "wxt zip -b firefox --mv3"
 	},
 	"type": "module",
-	"version": "0.7.1"
+	"version": "0.8.0"
 }
