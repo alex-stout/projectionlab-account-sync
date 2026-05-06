@@ -310,6 +310,103 @@ describe("SYNC_TO_PL", () => {
 		);
 	});
 
+	it("combines multiple accounts mapped to the same PL account into one additive entry", async () => {
+		vi.mocked(browser.tabs.query).mockResolvedValueOnce([mockTab] as any);
+		vi.mocked(browser.storage.local.get).mockResolvedValue({
+			plApiKey: "test-key",
+			accounts_vanguard: [
+				{ name: "Checking 1", balance: 1000, accountId: "a-1" },
+				{ name: "Checking 2", balance: 250, accountId: "a-2" },
+				{ name: "Brokerage", balance: 7500, accountId: "a-3" },
+			],
+			mappings_vanguard: {
+				"a-1": "pl-checking",
+				"a-2": "pl-checking",
+				"a-3": "pl-brokerage",
+			},
+		} as any);
+		vi.mocked(browser.tabs.sendMessage as any).mockResolvedValue({
+			results: [],
+		});
+		await call({ type: "SYNC_TO_PL", sourceId: "vanguard" });
+		const sentEntries = vi.mocked(browser.tabs.sendMessage as any).mock
+			.calls[0][1].entries;
+		expect(sentEntries).toEqual([
+			{ plId: "pl-checking", balance: 1250, name: "Checking 1 + Checking 2" },
+			{ plId: "pl-brokerage", balance: 7500, name: "Brokerage" },
+		]);
+	});
+
+	it("sums balances across sources mapped to the same PL account", async () => {
+		vi.mocked(browser.tabs.query).mockResolvedValueOnce([mockTab] as any);
+		vi.mocked(browser.storage.local.get).mockResolvedValue({
+			plApiKey: "test-key",
+			accounts_vanguard: [{ name: "Vg Cash", balance: 1000, accountId: "v-1" }],
+			mappings_vanguard: { "v-1": "pl-checking" },
+			accounts_ynab: [
+				{ name: "YNAB Checking", balance: 250, accountId: "y-1" },
+			],
+			mappings_ynab: { "y-1": "pl-checking" },
+		} as any);
+		vi.mocked(browser.tabs.sendMessage as any).mockResolvedValue({
+			results: [],
+		});
+		await call({ type: "SYNC_TO_PL", sourceId: "vanguard" });
+		const sentEntries = vi.mocked(browser.tabs.sendMessage as any).mock
+			.calls[0][1].entries;
+		expect(sentEntries).toEqual([
+			{
+				plId: "pl-checking",
+				balance: 1250,
+				name: "Vg Cash + YNAB Checking",
+			},
+		]);
+	});
+
+	it("does not push plIds that the current source does not contribute to", async () => {
+		vi.mocked(browser.tabs.query).mockResolvedValueOnce([mockTab] as any);
+		vi.mocked(browser.storage.local.get).mockResolvedValue({
+			plApiKey: "test-key",
+			accounts_vanguard: [{ name: "IRA", balance: 5000, accountId: "v-1" }],
+			mappings_vanguard: { "v-1": "pl-ira" },
+			accounts_ynab: [{ name: "Checking", balance: 800, accountId: "y-1" }],
+			mappings_ynab: { "y-1": "pl-checking" },
+		} as any);
+		vi.mocked(browser.tabs.sendMessage as any).mockResolvedValue({
+			results: [],
+		});
+		await call({ type: "SYNC_TO_PL", sourceId: "vanguard" });
+		const sentEntries = vi.mocked(browser.tabs.sendMessage as any).mock
+			.calls[0][1].entries;
+		expect(sentEntries).toEqual([
+			{ plId: "pl-ira", balance: 5000, name: "IRA" },
+		]);
+	});
+
+	it("excludes accounts with null balance from aggregation", async () => {
+		vi.mocked(browser.tabs.query).mockResolvedValueOnce([mockTab] as any);
+		vi.mocked(browser.storage.local.get).mockResolvedValue({
+			plApiKey: "test-key",
+			accounts_vanguard: [
+				{ name: "Checking 1", balance: 1000, accountId: "a-1" },
+				{ name: "Checking 2", balance: null, accountId: "a-2" },
+			],
+			mappings_vanguard: {
+				"a-1": "pl-checking",
+				"a-2": "pl-checking",
+			},
+		} as any);
+		vi.mocked(browser.tabs.sendMessage as any).mockResolvedValue({
+			results: [],
+		});
+		await call({ type: "SYNC_TO_PL", sourceId: "vanguard" });
+		const sentEntries = vi.mocked(browser.tabs.sendMessage as any).mock
+			.calls[0][1].entries;
+		expect(sentEntries).toEqual([
+			{ plId: "pl-checking", balance: 1000, name: "Checking 1" },
+		]);
+	});
+
 	it("sends mapped entries and sets lastSynced on success", async () => {
 		vi.mocked(browser.tabs.query).mockResolvedValueOnce([mockTab] as any);
 		vi.mocked(browser.storage.local.get).mockResolvedValue({

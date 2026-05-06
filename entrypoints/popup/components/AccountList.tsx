@@ -1,4 +1,4 @@
-import type { SourcePlugin } from "~/plugins";
+import { PLUGINS, type SourcePlugin } from "~/plugins";
 import type { Account, PlAccount } from "~/types";
 import { accountKey } from "../utils";
 import AccountRow from "./AccountRow";
@@ -8,15 +8,20 @@ type Props = {
 	accounts: Account[];
 	mappings: Record<string, string>;
 	plAccounts: PlAccount[];
+	otherSourceMappings?: Record<string, string[]>;
 	sourceError: string | null;
 	onMappingChange: (key: string, plId: string) => void;
 };
+
+const pluginName = (id: string) =>
+	PLUGINS.find((plugin) => plugin.id === id)?.name ?? id;
 
 export default function AccountList({
 	plugin,
 	accounts,
 	mappings,
 	plAccounts,
+	otherSourceMappings,
 	sourceError,
 	onMappingChange,
 }: Props) {
@@ -50,13 +55,21 @@ export default function AccountList({
 					<div className="divide-y divide-gray-100">
 						{accounts.map((acc, i) => {
 							const key = accountKey(acc, i);
+
+							const mappedPlId = mappings[key] ?? "";
+
+							const otherSources = mappedPlId
+								? (otherSourceMappings?.[mappedPlId] ?? []).map(pluginName)
+								: [];
+
 							return (
 								<AccountRow
 									key={key}
 									accountKey={key}
 									account={acc}
-									mapped={mappings[key] ?? ""}
+									mapped={mappedPlId}
 									plAccounts={plAccounts}
+									otherSources={otherSources}
 									onChange={onMappingChange}
 								/>
 							);

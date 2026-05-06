@@ -274,6 +274,40 @@ export async function getSourceState(sourceId: string): Promise<{
 }
 
 /**
+ * For each PL account id, lists the other source plugins (excluding `currentSourceId`)
+ * that have a mapping pointing to it. Used to surface cross-source aggregation
+ * to the user.
+ *
+ * @param currentSourceId Plugin id of the currently-viewed source.
+ * @returns `plId` → array of *other* source plugin ids mapping to it.
+ */
+export async function getOtherSourceMappings(
+	currentSourceId: string,
+): Promise<Record<string, string[]>> {
+	const otherPlugins = PLUGINS.filter(
+		(plugin) => plugin.id !== currentSourceId,
+	);
+
+	const stored = await browser.storage.local.get(
+		otherPlugins.map((plugin) => mappingsKey(plugin.id)),
+	);
+
+	const result: Record<string, string[]> = {};
+
+	for (const plugin of otherPlugins) {
+		const m = stored[mappingsKey(plugin.id)] as PLMappings | undefined;
+
+		if (!m) continue;
+
+		for (const plId of Object.values(m)) {
+			if (!result[plId]) result[plId] = [];
+			result[plId].push(plugin.id);
+		}
+	}
+	return result;
+}
+
+/**
  * Removes every key this extension writes: API key, PL account cache,
  * disabled-plugin list, and per-plugin accounts/mappings/timestamps/creds.
  */
