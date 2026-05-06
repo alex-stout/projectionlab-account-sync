@@ -4,6 +4,7 @@ A Chrome/Firefox browser extension that syncs account balances from financial in
 
 [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/kblfkofeklnbiooiilkgdmheideflnfd?label=Chrome&logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/kblfkofeklnbiooiilkgdmheideflnfd)
 [![Firefox Add-ons](https://img.shields.io/amo/v/projectionlab-account-sync?label=Firefox&logo=firefox)](https://addons.mozilla.org/firefox/addon/projectionlab-account-sync/)
+[![Edge Add-ons](https://img.shields.io/badge/dynamic/json?label=Edge&prefix=v&query=%24.version&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fgliknojbdlmklbeephnadicnoppefaei&logo=microsoftedge&logoColor=white)](https://microsoftedge.microsoft.com/addons/detail/projectionlab-account-syn/gliknojbdlmklbeephnadicnoppefaei)
 ![Code Coverage](https://img.shields.io/badge/coverage-97%25-brightgreen?style=flat)
 
 <div align="center">
