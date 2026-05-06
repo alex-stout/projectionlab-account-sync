@@ -128,20 +128,50 @@ async function handleMessage(msg: BgMessage): Promise<unknown> {
 			return { error: "ProjectionLab is not open. Open it and try again." };
 		}
 
-		const [accounts, mappings] = await Promise.all([
-			getAccounts(sourceId),
-			getMappings(sourceId),
-		]);
+		const allSources = await Promise.all(
+			PLUGINS.map(async (plugin) => {
+				const pluginId = plugin.id;
 
-		const entries: SyncEntry[] = accounts
-			.map((acc) => {
-				const plId = mappings[getMappingKey(acc)];
+				const [accounts, mappings] = await Promise.all([
+					getAccounts(pluginId),
+					getMappings(pluginId),
+				]);
 
-				return plId && acc.balance !== null
-					? { plId, balance: acc.balance, name: acc.name }
-					: null;
-			})
-			.filter((e): e is SyncEntry => e !== null);
+				return { id: pluginId, accounts, mappings };
+			}),
+		);
+
+		const current = allSources.find((s) => s.id === sourceId);
+
+		const targetPlIds = new Set<string>();
+
+		for (const account of current?.accounts ?? []) {
+			const plId = current?.mappings[getMappingKey(account)];
+
+			if (plId && account.balance !== null) targetPlIds.add(plId);
+		}
+
+		const grouped = new Map<string, SyncEntry>();
+
+		for (const { accounts, mappings } of allSources) {
+			for (const account of accounts) {
+				const plId = mappings[getMappingKey(account)];
+				if (!plId || account.balance === null || !targetPlIds.has(plId))
+					continue;
+				const existing = grouped.get(plId);
+				if (existing) {
+					existing.balance += account.balance;
+					existing.name = `${existing.name} + ${account.name}`;
+				} else {
+					grouped.set(plId, {
+						plId,
+						balance: account.balance,
+						name: account.name,
+					});
+				}
+			}
+		}
+		const entries: SyncEntry[] = Array.from(grouped.values());
 
 		if (entries.length === 0) {
 			return { error: "No mapped accounts with balances to sync." };

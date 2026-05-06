@@ -157,6 +157,48 @@ describe("AccountRow", () => {
 		expect(nameEl.className).toMatch(/truncate/);
 	});
 
+	it("shows a hint when the mapped PL account is also mapped from other sources", () => {
+		render(
+			<AccountRow
+				accountKey="IRA"
+				account={account}
+				mapped="pl-1"
+				plAccounts={plAccounts}
+				otherSources={["YNAB", "Alight"]}
+				onChange={vi.fn()}
+			/>,
+		);
+		expect(screen.getByText(/also from YNAB, Alight/)).toBeInTheDocument();
+	});
+
+	it("does not show the cross-source hint when otherSources is empty", () => {
+		render(
+			<AccountRow
+				accountKey="IRA"
+				account={account}
+				mapped="pl-1"
+				plAccounts={plAccounts}
+				otherSources={[]}
+				onChange={vi.fn()}
+			/>,
+		);
+		expect(screen.queryByText(/also from/)).not.toBeInTheDocument();
+	});
+
+	it("does not show the cross-source hint when row is unmapped", () => {
+		render(
+			<AccountRow
+				accountKey="IRA"
+				account={account}
+				mapped=""
+				plAccounts={plAccounts}
+				otherSources={["YNAB"]}
+				onChange={vi.fn()}
+			/>,
+		);
+		expect(screen.queryByText(/also from/)).not.toBeInTheDocument();
+	});
+
 	it("pins behavior for a stale mapping referencing a deleted PL account", () => {
 		// User deleted 'pl-deleted' in ProjectionLab but the mapping is still in storage.
 		// Pins the current (silent) behavior so a future change to surface a warning

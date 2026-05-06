@@ -379,6 +379,56 @@ test("PL accounts loaded in Settings populate dropdowns for every plugin", async
 	).toBeAttached();
 });
 
+test("cross-source additive sync sums balances into one PL account", async ({
+	context,
+	popupBaseUrl,
+}) => {
+	// Seed mappings so both plugins target pl-roth-ira from the start
+	const sw = await getServiceWorker(context);
+
+	await seedStorage(sw, {
+		mappings_vanguard: { "111": "pl-roth-ira" },
+		mappings_alight: { "401(k) — Core": "pl-roth-ira" },
+	});
+
+	// Refresh both sources so their balances are stored.
+	await openMockTab(context, VANGUARD_URL);
+	await openMockTab(context, ALIGHT_URL);
+
+	const popup = await openPopup(context, popupBaseUrl);
+
+	await popup.getByRole("button", { name: /↻ Vanguard/ }).click();
+	await expect(popup.getByText("Roth IRA")).toBeVisible({ timeout: 10_000 });
+
+	await popup.getByTitle("Alight").click();
+	await popup.getByRole("button", { name: /↻ Alight/ }).click();
+	await expect(popup.getByText("401(k) — Core")).toBeVisible({
+		timeout: 10_000,
+	});
+
+	// Load PL accounts.
+	const plPage = await openMockTab(context, PL_URL);
+	await popup.getByTitle("Settings").click();
+	await popup.getByRole("button", { name: "↻ Refresh" }).click();
+	await expect(popup.getByText(/\d+ loaded/)).toBeVisible({ timeout: 10_000 });
+
+	// Sync from Alight; cross-source should pull Vanguard's stored Roth IRA balance.
+	await popup.getByTitle("Alight").click();
+	await expect(popup.getByText(/\+ also from Vanguard/i).first()).toBeVisible({
+		timeout: 10_000,
+	});
+
+	await popup.getByRole("button", { name: "Sync to ProjectionLab" }).click();
+	await expect(popup.getByText(/✓.*Roth IRA \+ 401\(k\) — Core/)).toBeVisible({
+		timeout: 10_000,
+	});
+
+	const pushed = await plPage.evaluate(
+		() => (window as any).__mockPlUpdates?.["pl-roth-ira"],
+	);
+	expect(pushed).toBe(1200 + 1650); // 1200 (Vanguard Roth IRA) + 1650 (Alight 401(k) Core)
+});
+
 test("Settings shows 'Not loaded' → 'N loaded · just now' after refresh", async ({
 	context,
 	popupBaseUrl,

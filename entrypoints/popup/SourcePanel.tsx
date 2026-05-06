@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { getSourceState, setMappings as persistMappings } from "~/lib/storage";
+import {
+	getOtherSourceMappings,
+	getSourceState,
+	setMappings as persistMappings,
+} from "~/lib/storage";
 import type { SourcePlugin } from "~/plugins";
 import type {
 	Account,
@@ -30,6 +34,9 @@ export default function SourcePanel({
 }: Props) {
 	const [accounts, setAccounts] = useState<Account[]>([]);
 	const [mappings, setPLMappings] = useState<PLMappings>({});
+	const [otherSourceMappings, setOtherSourceMappings] = useState<
+		Record<string, string[]>
+	>({});
 	const [loading, setLoading] = useState(false);
 	const [sourceError, setSourceError] = useState<string | null>(null);
 	const [plSync, setPlSync] = useState<PlSyncState>({ status: "idle" });
@@ -39,6 +46,7 @@ export default function SourcePanel({
 			setAccounts(state.accounts);
 			setPLMappings(state.mappings);
 		});
+		getOtherSourceMappings(plugin.id).then(setOtherSourceMappings);
 		setPlSync({ status: "idle" });
 		setSourceError(null);
 	}, [plugin.id]);
@@ -116,6 +124,7 @@ export default function SourcePanel({
 				accounts={accounts}
 				mappings={mappings}
 				plAccounts={plAccounts}
+				otherSourceMappings={otherSourceMappings}
 				sourceError={sourceError}
 				onMappingChange={handleMappingChange}
 			/>

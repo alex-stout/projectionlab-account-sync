@@ -19,6 +19,7 @@ import {
 	getDisabledPlugins,
 	getMappingKey,
 	getMappings,
+	getOtherSourceMappings,
 	getPLAccounts,
 	getPlApiKey,
 	setAccounts,
@@ -133,6 +134,33 @@ describe("getMappings", () => {
 
 	it("returns {} when nothing is stored", async () => {
 		expect(await getMappings("vanguard")).toEqual({});
+	});
+});
+
+describe("getOtherSourceMappings", () => {
+	it("groups other plugins' mappings by plId, excluding the current source", async () => {
+		vi.mocked(browser.storage.local.get).mockResolvedValueOnce({
+			[mappingsKey("ynab")]: { "y-1": "pl-checking", "y-2": "pl-savings" },
+			[mappingsKey("alight")]: { "a-1": "pl-checking" },
+			[mappingsKey("monarch")]: {},
+		} as any);
+		const result = await getOtherSourceMappings("vanguard");
+		expect(result).toEqual({
+			"pl-checking": ["alight", "ynab"].sort(),
+			"pl-savings": ["ynab"],
+		});
+	});
+
+	it("returns {} when no other plugin has mappings", async () => {
+		expect(await getOtherSourceMappings("vanguard")).toEqual({});
+	});
+
+	it("does not include mappings from the current source", async () => {
+		vi.mocked(browser.storage.local.get).mockResolvedValueOnce({
+			[mappingsKey("vanguard")]: { "v-1": "pl-checking" },
+		} as any);
+		const result = await getOtherSourceMappings("vanguard");
+		expect(result["pl-checking"]).toBeUndefined();
 	});
 });
 
