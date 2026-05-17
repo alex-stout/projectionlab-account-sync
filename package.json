@@ -17,7 +17,7 @@
 		"@wxt-dev/module-react": "^1.1.5",
 		"addons-linter": "^10.4.0",
 		"jsdom": "^29.1.1",
-		"playwright": "^1.59.1",
+		"playwright": "^1.60.0",
 		"simple-git-hooks": "^2.13.1",
 		"typescript": "^6.0.3",
 		"vitest": "^4.1.4",
