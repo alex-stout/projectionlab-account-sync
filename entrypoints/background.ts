@@ -1,3 +1,4 @@
+import { expandToSyncCandidates } from "~/lib/mapping";
 import {
 	getAccounts,
 	getCreds,
@@ -146,28 +147,26 @@ async function handleMessage(msg: BgMessage): Promise<unknown> {
 		const targetPlIds = new Set<string>();
 
 		for (const account of current?.accounts ?? []) {
-			const plId = current?.mappings[getMappingKey(account)];
-
-			if (plId && account.balance !== null) targetPlIds.add(plId);
+			const entry = current?.mappings[getMappingKey(account)];
+			for (const candidate of expandToSyncCandidates(account, entry)) {
+				targetPlIds.add(candidate.plId);
+			}
 		}
 
 		const grouped = new Map<string, SyncEntry>();
 
 		for (const { accounts, mappings } of allSources) {
 			for (const account of accounts) {
-				const plId = mappings[getMappingKey(account)];
-				if (!plId || account.balance === null || !targetPlIds.has(plId))
-					continue;
-				const existing = grouped.get(plId);
-				if (existing) {
-					existing.balance += account.balance;
-					existing.name = `${existing.name} + ${account.name}`;
-				} else {
-					grouped.set(plId, {
-						plId,
-						balance: account.balance,
-						name: account.name,
-					});
+				const entry = mappings[getMappingKey(account)];
+				for (const candidate of expandToSyncCandidates(account, entry)) {
+					if (!targetPlIds.has(candidate.plId)) continue;
+					const existing = grouped.get(candidate.plId);
+					if (existing) {
+						existing.balance += candidate.balance;
+						existing.name = `${existing.name} + ${candidate.name}`;
+					} else {
+						grouped.set(candidate.plId, { ...candidate });
+					}
 				}
 			}
 		}

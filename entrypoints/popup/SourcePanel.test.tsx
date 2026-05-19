@@ -269,4 +269,39 @@ describe("SourcePanel", () => {
 			expect(screen.queryByText("PL not open")).not.toBeInTheDocument(),
 		);
 	});
+
+	it("does not count an all-ignore split as mapped", async () => {
+		// Row exists, with a split that targets only the IGNORE sentinel — no
+		// real PL targets get synced, so the row must not inflate the counter.
+		vi.mocked(browser.storage.local.get).mockResolvedValue({
+			accounts_vanguard: accounts,
+			mappings_vanguard: {
+				IRA: {
+					splits: [{ plId: "__ignore__", mode: "percent", value: 100 }],
+				},
+			},
+		} as any);
+		render(<SourcePanel {...defaults} plAccounts={plAccounts} />);
+		await waitFor(() =>
+			expect(screen.getByText("0 of 1 mapped")).toBeInTheDocument(),
+		);
+	});
+
+	it("counts a split with at least one real PL target as mapped", async () => {
+		vi.mocked(browser.storage.local.get).mockResolvedValue({
+			accounts_vanguard: accounts,
+			mappings_vanguard: {
+				IRA: {
+					splits: [
+						{ plId: "pl-1", mode: "percent", value: 60 },
+						{ plId: "__ignore__", mode: "percent", value: 40 },
+					],
+				},
+			},
+		} as any);
+		render(<SourcePanel {...defaults} plAccounts={plAccounts} />);
+		await waitFor(() =>
+			expect(screen.getByText("1 of 1 mapped")).toBeInTheDocument(),
+		);
+	});
 });

@@ -162,6 +162,24 @@ describe("getOtherSourceMappings", () => {
 		const result = await getOtherSourceMappings("vanguard");
 		expect(result["pl-checking"]).toBeUndefined();
 	});
+
+	it("traverses split-mapping legs as targets of the source", async () => {
+		vi.mocked(browser.storage.local.get).mockResolvedValueOnce({
+			[mappingsKey("ynab")]: {
+				"y-1": {
+					splits: [
+						{ plId: "pl-roth", mode: "percent", value: 60 },
+						{ plId: "pl-trad", mode: "remainder" },
+					],
+				},
+			},
+		} as any);
+		const result = await getOtherSourceMappings("vanguard");
+		expect(result).toEqual({
+			"pl-roth": ["ynab"],
+			"pl-trad": ["ynab"],
+		});
+	});
 });
 
 describe("setMappings", () => {

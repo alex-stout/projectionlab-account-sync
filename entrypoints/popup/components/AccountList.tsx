@@ -1,16 +1,17 @@
+import { isSplitMapping } from "~/lib/mapping";
 import { PLUGINS, type SourcePlugin } from "~/plugins";
-import type { Account, PlAccount } from "~/types";
+import type { Account, PLMappings, PlAccount, SplitMapping } from "~/types";
 import { accountKey } from "../utils";
 import AccountRow from "./AccountRow";
 
 type Props = {
 	plugin: SourcePlugin;
 	accounts: Account[];
-	mappings: Record<string, string>;
+	mappings: PLMappings;
 	plAccounts: PlAccount[];
 	otherSourceMappings?: Record<string, string[]>;
 	sourceError: string | null;
-	onMappingChange: (key: string, plId: string) => void;
+	onMappingChange: (key: string, entry: string | SplitMapping) => void;
 };
 
 const pluginName = (id: string) =>
@@ -56,7 +57,8 @@ export default function AccountList({
 						{accounts.map((acc, i) => {
 							const key = accountKey(acc, i);
 
-							const mappedPlId = mappings[key] ?? "";
+							const entry = mappings[key];
+							const mappedPlId = entry && !isSplitMapping(entry) ? entry : "";
 
 							const otherSources = mappedPlId
 								? (otherSourceMappings?.[mappedPlId] ?? []).map(pluginName)
@@ -67,6 +69,7 @@ export default function AccountList({
 									key={key}
 									accountKey={key}
 									account={acc}
+									mapping={entry}
 									mapped={mappedPlId}
 									plAccounts={plAccounts}
 									otherSources={otherSources}

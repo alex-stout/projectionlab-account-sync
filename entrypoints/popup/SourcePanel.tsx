@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { isSplitValid, mappingTargets } from "~/lib/mapping";
 import {
 	getOtherSourceMappings,
 	getSourceState,
@@ -10,6 +11,7 @@ import type {
 	PLMappings,
 	PlAccount,
 	PlSyncState,
+	SplitMapping,
 	SyncResult,
 } from "~/types";
 import AccountList from "./components/AccountList";
@@ -82,10 +84,20 @@ export default function SourcePanel({
 		onRefreshed();
 	};
 
-	const handleMappingChange = async (vKey: string, plId: string) => {
-		const next = { ...mappings, [vKey]: plId };
+	const handleMappingChange = async (
+		vKey: string,
+		entry: string | SplitMapping,
+	) => {
+		const next: PLMappings = { ...mappings, [vKey]: entry };
 
-		if (!plId) delete next[vKey];
+		// Empty string clears the row to "Not mapped". Splits with no legs are
+		// treated the same way to avoid persisting an unsyncable shell.
+		if (
+			entry === "" ||
+			(typeof entry === "object" && entry.splits.length === 0)
+		) {
+			delete next[vKey];
+		}
 
 		setPLMappings(next);
 
@@ -106,9 +118,17 @@ export default function SourcePanel({
 		}
 	};
 
+	// "Mapped" means the row will actually produce a sync entry. An all-ignore
+	// split has truthy `plId`s on every leg but resolves to zero real targets,
+	// so it should not inflate the counter.
 	const mappedCount = accounts.filter(
-		(acc, i) => !!mappings[accountKey(acc, i)],
+		(acc, i) => mappingTargets(mappings[accountKey(acc, i)]).length > 0,
 	).length;
+
+	const hasInvalidSplit = accounts.some((acc, i) => {
+		const entry = mappings[accountKey(acc, i)];
+		return !isSplitValid(acc.balance, entry);
+	});
 
 	return (
 		<div className="flex flex-col flex-1 min-h-0">
@@ -134,6 +154,7 @@ export default function SourcePanel({
 					mappedCount={mappedCount}
 					totalCount={accounts.length}
 					plAccountsLoaded={plAccounts.length > 0}
+					hasInvalidSplit={hasInvalidSplit}
 					plSync={plSync}
 					onSync={handleSync}
 				/>

@@ -199,6 +199,83 @@ describe("AccountRow", () => {
 		expect(screen.queryByText(/also from/)).not.toBeInTheDocument();
 	});
 
+	it("offers a 'Split into multiple' affordance when PL accounts are loaded and row is single-mapped", () => {
+		render(
+			<AccountRow
+				accountKey="IRA"
+				account={account}
+				mapped="pl-1"
+				plAccounts={plAccounts}
+				onChange={vi.fn()}
+			/>,
+		);
+		expect(
+			screen.getByRole("button", { name: /split into multiple/i }),
+		).toBeInTheDocument();
+	});
+
+	it("does not offer the split affordance until PL accounts are loaded", () => {
+		render(
+			<AccountRow
+				accountKey="IRA"
+				account={account}
+				mapped=""
+				plAccounts={[]}
+				onChange={vi.fn()}
+			/>,
+		);
+		expect(
+			screen.queryByRole("button", { name: /split into multiple/i }),
+		).not.toBeInTheDocument();
+	});
+
+	it("seeds a split with the current mapping when the user clicks split", () => {
+		const onChange = vi.fn();
+		render(
+			<AccountRow
+				accountKey="IRA"
+				account={account}
+				mapped="pl-1"
+				plAccounts={plAccounts}
+				onChange={onChange}
+			/>,
+		);
+		fireEvent.click(
+			screen.getByRole("button", { name: /split into multiple/i }),
+		);
+		expect(onChange).toHaveBeenCalledWith("IRA", {
+			splits: [{ plId: "pl-1", mode: "percent", value: 100 }],
+		});
+	});
+
+	it("renders the split editor instead of the select when mapping is a SplitMapping", () => {
+		render(
+			<AccountRow
+				accountKey="IRA"
+				account={account}
+				mapping={{
+					splits: [
+						{ plId: "pl-1", mode: "percent", value: 60 },
+						{ plId: "pl-2", mode: "remainder" },
+					],
+				}}
+				mapped=""
+				plAccounts={plAccounts}
+				onChange={vi.fn()}
+			/>,
+		);
+		// The flat single-select is gone (would have included a "Not mapped" option).
+		expect(
+			screen.queryByRole("option", { name: "Not mapped" }),
+		).not.toBeInTheDocument();
+		expect(
+			screen.getByRole("combobox", { name: /split leg 1 pl account/i }),
+		).toHaveValue("pl-1");
+		expect(
+			screen.getByRole("combobox", { name: /split leg 2 pl account/i }),
+		).toHaveValue("pl-2");
+	});
+
 	it("pins behavior for a stale mapping referencing a deleted PL account", () => {
 		// User deleted 'pl-deleted' in ProjectionLab but the mapping is still in storage.
 		// Pins the current (silent) behavior so a future change to surface a warning
