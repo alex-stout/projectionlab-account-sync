@@ -15,7 +15,7 @@
 		"@types/react-dom": "^19.2.3",
 		"@vitest/coverage-v8": "^4.1.7",
 		"@wxt-dev/module-react": "^1.1.5",
-		"addons-linter": "^10.5.0",
+		"addons-linter": "^10.6.0",
 		"jsdom": "^29.1.1",
 		"playwright": "^1.60.0",
 		"simple-git-hooks": "^2.13.1",
