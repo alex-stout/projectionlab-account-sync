@@ -135,10 +135,20 @@ export default function SplitEditor({
 		mapping.splits.some((l) => l.mode === "percent") &&
 		remainderCount === 0 &&
 		Math.abs(percentTotal - 100) > SPLIT_PERCENT_TOLERANCE;
+	const remainderOverAllocated =
+		remainderCount > 0 &&
+		(total >= 0
+			? remainderShare < -SPLIT_DOLLAR_TOLERANCE
+			: remainderShare > SPLIT_DOLLAR_TOLERANCE);
 	const overAllocated =
-		remainderCount === 0 && unallocated < -SPLIT_DOLLAR_TOLERANCE;
+		remainderOverAllocated ||
+		(remainderCount === 0 && unallocated < -SPLIT_DOLLAR_TOLERANCE);
 	const underAllocated =
 		remainderCount === 0 && unallocated > SPLIT_DOLLAR_TOLERANCE;
+	const overAllocatedBy =
+		remainderCount > 0
+			? Math.abs(remainderShare * remainderCount)
+			: Math.abs(unallocated);
 
 	return (
 		<div className="border border-indigo-100 bg-indigo-50/40 rounded-md">
@@ -246,7 +256,7 @@ export default function SplitEditor({
 					</span>
 				) : overAllocated ? (
 					<span className="text-red-500">
-						Over-allocated by {fmt(Math.abs(unallocated))}
+						Over-allocated by {fmt(overAllocatedBy)}
 					</span>
 				) : underAllocated ? (
 					<span className="text-amber-600">{fmt(unallocated)} unallocated</span>

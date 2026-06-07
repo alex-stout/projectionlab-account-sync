@@ -167,9 +167,9 @@ export function isSplitValid(
 	);
 
 	if (remainderCount > 0) {
-		// A remainder leg absorbs whatever's left — only invalid when fixed +
-		// percent over-allocate, leaving the remainder negative.
-		return fixedSum + percentSum <= balance + SPLIT_DOLLAR_TOLERANCE;
+		return balance >= 0
+			? fixedSum + percentSum <= balance + SPLIT_DOLLAR_TOLERANCE
+			: fixedSum + percentSum >= balance - SPLIT_DOLLAR_TOLERANCE;
 	}
 
 	if (

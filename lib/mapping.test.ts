@@ -224,6 +224,36 @@ describe("isSplitValid", () => {
 			}),
 		).toBe(false);
 	});
+
+	it("accepts a single remainder leg on a negative (liability) balance", () => {
+		expect(
+			isSplitValid(-2000, {
+				splits: [{ plId: "pl-debt", mode: "remainder" }],
+			}),
+		).toBe(true);
+	});
+
+	it("accepts percent + remainder on a negative (liability) balance", () => {
+		expect(
+			isSplitValid(-2000, {
+				splits: [
+					{ plId: "pl-a", mode: "percent", value: 50 },
+					{ plId: "pl-b", mode: "remainder" },
+				],
+			}),
+		).toBe(true);
+	});
+
+	it("rejects a percent leg that overshoots a negative balance past the remainder", () => {
+		expect(
+			isSplitValid(-2000, {
+				splits: [
+					{ plId: "pl-a", mode: "percent", value: 150 },
+					{ plId: "pl-b", mode: "remainder" },
+				],
+			}),
+		).toBe(false);
+	});
 });
 
 describe("expandToSyncCandidates", () => {

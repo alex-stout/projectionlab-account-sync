@@ -125,6 +125,41 @@ describe("SplitEditor", () => {
 		expect(node.className).toMatch(/text-red/);
 	});
 
+	it("shows over-allocation in red when fixed legs exceed total despite a remainder leg", () => {
+		render(
+			<SplitEditor
+				account={account}
+				mapping={splitWith([
+					{ plId: "pl-trad", mode: "fixed", value: 12_000 },
+					{ plId: "pl-roth", mode: "remainder" },
+				])}
+				plAccounts={plAccounts}
+				onChange={vi.fn()}
+				onCancel={vi.fn()}
+			/>,
+		);
+		const node = screen.getByText(/Over-allocated by \$2,000/);
+		expect(node).toBeInTheDocument();
+		expect(node.className).toMatch(/text-red/);
+	});
+
+	it("does not warn for a valid remainder split on a negative (liability) balance", () => {
+		render(
+			<SplitEditor
+				account={{ name: "Card", balance: -2000, accountId: "v-2" }}
+				mapping={splitWith([
+					{ plId: "pl-trad", mode: "percent", value: 50 },
+					{ plId: "pl-roth", mode: "remainder" },
+				])}
+				plAccounts={plAccounts}
+				onChange={vi.fn()}
+				onCancel={vi.fn()}
+			/>,
+		);
+		expect(screen.queryByText(/Over-allocated/)).not.toBeInTheDocument();
+		expect(screen.queryByText(/unallocated/)).not.toBeInTheDocument();
+	});
+
 	it("renders the resolved dollar amount for a remainder leg", () => {
 		render(
 			<SplitEditor
