@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/alex-stout/projectionlab-account-sync/compare/v0.8.0...v0.9.0) (2026-06-07)
+
+
+### Features
+
+* **sync:** Enable splitting source accounts ([#63](https://github.com/alex-stout/projectionlab-account-sync/issues/63)) ([fc4651e](https://github.com/alex-stout/projectionlab-account-sync/commit/fc4651ee17db72d4228fb83317be1a9ece7ada56))
+
 ## [0.8.0](https://github.com/alex-stout/projectionlab-account-sync/compare/v0.7.1...v0.8.0) (2026-05-06)
 
 
