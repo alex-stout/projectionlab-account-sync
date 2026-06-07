@@ -96,7 +96,7 @@ export default function Popup() {
 	const showSettings = view === "settings" || forceSettings;
 
 	return (
-		<div className="flex w-full h-full min-w-115 bg-white text-sm text-gray-900 overflow-hidden">
+		<div className="flex w-full h-full min-w-135 bg-white text-sm text-gray-900 overflow-hidden">
 			<Sidebar
 				plugins={enabledPlugins}
 				activeId={activePlugin?.id ?? ""}

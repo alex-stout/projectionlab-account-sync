@@ -12,6 +12,7 @@ import {
 } from "~/plugins";
 
 import type { Account, Credentials, PLMappings, PlAccount } from "~/types";
+import { mappingTargets } from "./mapping";
 
 /**
  * The key used to look up a source account in the mapping table.
@@ -299,9 +300,11 @@ export async function getOtherSourceMappings(
 
 		if (!m) continue;
 
-		for (const plId of Object.values(m)) {
-			if (!result[plId]) result[plId] = [];
-			result[plId].push(plugin.id);
+		for (const entry of Object.values(m)) {
+			for (const plId of mappingTargets(entry)) {
+				if (!result[plId]) result[plId] = [];
+				result[plId].push(plugin.id);
+			}
 		}
 	}
 	return result;

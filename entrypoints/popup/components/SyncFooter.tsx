@@ -4,6 +4,7 @@ type Props = {
 	mappedCount: number;
 	totalCount: number;
 	plAccountsLoaded: boolean;
+	hasInvalidSplit?: boolean;
 	plSync: PlSyncState;
 	onSync: () => void;
 };
@@ -12,11 +13,15 @@ export default function SyncFooter({
 	mappedCount,
 	totalCount,
 	plAccountsLoaded,
+	hasInvalidSplit = false,
 	plSync,
 	onSync,
 }: Props) {
 	const canSync =
-		mappedCount > 0 && plAccountsLoaded && plSync.status !== "syncing";
+		mappedCount > 0 &&
+		plAccountsLoaded &&
+		!hasInvalidSplit &&
+		plSync.status !== "syncing";
 
 	return (
 		<div className="px-4 pb-4 pt-2 border-t border-gray-100 space-y-2">
@@ -24,11 +29,15 @@ export default function SyncFooter({
 				<span className="text-[11px] text-gray-400">
 					{mappedCount} of {totalCount} mapped
 				</span>
-				{!plAccountsLoaded && (
+				{!plAccountsLoaded ? (
 					<span className="text-[11px] text-amber-500">
 						Load PL accounts in Settings
 					</span>
-				)}
+				) : hasInvalidSplit ? (
+					<span className="text-[11px] text-amber-600">
+						Fix split allocation to enable sync
+					</span>
+				) : null}
 			</div>
 			<button
 				type="button"

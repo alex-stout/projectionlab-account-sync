@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { IGNORE_PL_ID } from "~/lib/mapping";
 import bgSetup, { getPlTab, getSourceTab } from "./background";
 
 const mockTab = { id: 1, url: "https://app.projectionlab.com/" };
@@ -450,6 +451,146 @@ describe("SYNC_TO_PL", () => {
 		vi.mocked(browser.tabs.sendMessage as any).mockResolvedValue(null);
 		await call({ type: "SYNC_TO_PL", sourceId: "vanguard" });
 		expect(browser.storage.local.set).not.toHaveBeenCalled();
+	});
+});
+
+describe("SYNC_TO_PL (split mappings)", () => {
+	it("expands a percent split into one entry per leg", async () => {
+		vi.mocked(browser.tabs.query).mockResolvedValueOnce([mockTab] as any);
+		vi.mocked(browser.storage.local.get).mockResolvedValue({
+			plApiKey: "test-key",
+			accounts_vanguard: [{ name: "401k", balance: 10_000, accountId: "v-1" }],
+			mappings_vanguard: {
+				"v-1": {
+					splits: [
+						{ plId: "pl-roth", mode: "percent", value: 60 },
+						{ plId: "pl-trad", mode: "percent", value: 40 },
+					],
+				},
+			},
+		} as any);
+		vi.mocked(browser.tabs.sendMessage as any).mockResolvedValue({
+			results: [],
+		});
+		await call({ type: "SYNC_TO_PL", sourceId: "vanguard" });
+		const sentEntries = vi.mocked(browser.tabs.sendMessage as any).mock
+			.calls[0][1].entries;
+		expect(sentEntries).toEqual([
+			{ plId: "pl-roth", balance: 6000, name: "401k" },
+			{ plId: "pl-trad", balance: 4000, name: "401k" },
+		]);
+	});
+
+	it("uses a remainder leg to absorb what fixed legs leave", async () => {
+		vi.mocked(browser.tabs.query).mockResolvedValueOnce([mockTab] as any);
+		vi.mocked(browser.storage.local.get).mockResolvedValue({
+			plApiKey: "test-key",
+			accounts_vanguard: [{ name: "401k", balance: 10_000, accountId: "v-1" }],
+			mappings_vanguard: {
+				"v-1": {
+					splits: [
+						{ plId: "pl-trad", mode: "fixed", value: 7500 },
+						{ plId: "pl-roth", mode: "remainder" },
+					],
+				},
+			},
+		} as any);
+		vi.mocked(browser.tabs.sendMessage as any).mockResolvedValue({
+			results: [],
+		});
+		await call({ type: "SYNC_TO_PL", sourceId: "vanguard" });
+		const sentEntries = vi.mocked(browser.tabs.sendMessage as any).mock
+			.calls[0][1].entries;
+		expect(sentEntries).toEqual([
+			{ plId: "pl-trad", balance: 7500, name: "401k" },
+			{ plId: "pl-roth", balance: 2500, name: "401k" },
+		]);
+	});
+
+	it("composes a split leg additively with another source mapped to the same PL account", async () => {
+		vi.mocked(browser.tabs.query).mockResolvedValueOnce([mockTab] as any);
+		vi.mocked(browser.storage.local.get).mockResolvedValue({
+			plApiKey: "test-key",
+			// Vanguard's 401k splits 60/40 Roth/Trad.
+			accounts_vanguard: [{ name: "401k", balance: 10_000, accountId: "v-1" }],
+			mappings_vanguard: {
+				"v-1": {
+					splits: [
+						{ plId: "pl-roth", mode: "percent", value: 60 },
+						{ plId: "pl-trad", mode: "percent", value: 40 },
+					],
+				},
+			},
+			// YNAB also tracks a Roth IRA balance and points at the same PL Roth account.
+			accounts_ynab: [{ name: "Roth IRA", balance: 1500, accountId: "y-1" }],
+			mappings_ynab: { "y-1": "pl-roth" },
+		} as any);
+		vi.mocked(browser.tabs.sendMessage as any).mockResolvedValue({
+			results: [],
+		});
+		await call({ type: "SYNC_TO_PL", sourceId: "vanguard" });
+		const sentEntries = vi.mocked(browser.tabs.sendMessage as any).mock
+			.calls[0][1].entries;
+		expect(sentEntries).toEqual([
+			{ plId: "pl-roth", balance: 7500, name: "401k + Roth IRA" },
+			{ plId: "pl-trad", balance: 4000, name: "401k" },
+		]);
+	});
+
+	it("drops split legs targeting the IGNORE sentinel from sync entries", async () => {
+		// User wants 60% Roth, 40% intentionally not synced.
+		vi.mocked(browser.tabs.query).mockResolvedValueOnce([mockTab] as any);
+		vi.mocked(browser.storage.local.get).mockResolvedValue({
+			plApiKey: "test-key",
+			accounts_vanguard: [{ name: "401k", balance: 10_000, accountId: "v-1" }],
+			mappings_vanguard: {
+				"v-1": {
+					splits: [
+						{ plId: "pl-roth", mode: "percent", value: 60 },
+						{ plId: IGNORE_PL_ID, mode: "percent", value: 40 },
+					],
+				},
+			},
+		} as any);
+		vi.mocked(browser.tabs.sendMessage as any).mockResolvedValue({
+			results: [],
+		});
+		await call({ type: "SYNC_TO_PL", sourceId: "vanguard" });
+		const sentEntries = vi.mocked(browser.tabs.sendMessage as any).mock
+			.calls[0][1].entries;
+		expect(sentEntries).toEqual([
+			{ plId: "pl-roth", balance: 6000, name: "401k" },
+		]);
+	});
+
+	it("only pushes split legs whose plId the current source contributes to", async () => {
+		// Vanguard splits to pl-roth + pl-trad. YNAB happens to map something
+		// to pl-checking. We sync vanguard, so pl-checking must NOT appear.
+		vi.mocked(browser.tabs.query).mockResolvedValueOnce([mockTab] as any);
+		vi.mocked(browser.storage.local.get).mockResolvedValue({
+			plApiKey: "test-key",
+			accounts_vanguard: [{ name: "401k", balance: 10_000, accountId: "v-1" }],
+			mappings_vanguard: {
+				"v-1": {
+					splits: [
+						{ plId: "pl-roth", mode: "percent", value: 60 },
+						{ plId: "pl-trad", mode: "percent", value: 40 },
+					],
+				},
+			},
+			accounts_ynab: [{ name: "Checking", balance: 800, accountId: "y-1" }],
+			mappings_ynab: { "y-1": "pl-checking" },
+		} as any);
+		vi.mocked(browser.tabs.sendMessage as any).mockResolvedValue({
+			results: [],
+		});
+		await call({ type: "SYNC_TO_PL", sourceId: "vanguard" });
+		const sentEntries = vi.mocked(browser.tabs.sendMessage as any).mock
+			.calls[0][1].entries;
+		expect(sentEntries.map((e: any) => e.plId).sort()).toEqual([
+			"pl-roth",
+			"pl-trad",
+		]);
 	});
 });
 

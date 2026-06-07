@@ -34,7 +34,7 @@ async function launchDemoContext(dsr = 2): Promise<BrowserContext> {
 	const context = await chromium.launchPersistentContext("", {
 		headless: false,
 		deviceScaleFactor: dsr,
-		viewport: { width: 460, height: 480 },
+		viewport: { width: 540, height: 480 },
 		args: [
 			`--disable-extensions-except=${extPath}`,
 			`--load-extension=${extPath}`,
@@ -98,7 +98,7 @@ function buildMarqueePromo(icon: string, popupBase64: string): string {
   .title { color: white; font-size: 52px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
   .tagline { color: rgba(255,255,255,0.88); font-size: 20px; font-weight: 500; line-height: 1.45; }
   .popup {
-    width: 460px; height: 480px;
+    width: 540px; height: 480px;
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.2), 0 25px 70px rgba(99, 102, 241, 0.25);
@@ -144,7 +144,7 @@ function buildStoreFrame(popupBase64: string, caption: string): string {
     line-height: 1.25;
   }
   .popup {
-    width: 460px; height: 480px;
+    width: 540px; height: 480px;
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.2), 0 25px 70px rgba(99, 102, 241, 0.25);
@@ -202,7 +202,7 @@ test.describe("Screenshots", () => {
 
 	test("chrome store shots", async () => {
 		// CWS requires 1280x800 JPEG or 24-bit PNG (no alpha). Use DSR=1 for pixel-crisp
-		// popup rendering at its natural 460x480 size inside the 1280x800 frame.
+		// popup rendering at its natural 540x480 size inside the 1280x800 frame.
 		const context = await launchDemoContext(1);
 		try {
 			await mkdir("docs/store/chrome", { recursive: true });

@@ -18,8 +18,31 @@ export type PLAccountId = string;
  */
 export type SourceAccountKey = string;
 
-/** `sourceAccountKey` → `plAccountId`. One entry per mapped source row. */
-export type PLMappings = Record<SourceAccountKey, PLAccountId>;
+/**
+ * One leg of a split mapping: a portion of a single source balance routed to
+ * a specific PL account. `mode` decides how `value` is interpreted:
+ * - `percent` — `value` is 0–100, leg amount = total × value/100
+ * - `fixed` — `value` is an absolute dollar amount
+ * - `remainder` — `value` is ignored; leg absorbs whatever the other legs leave
+ */
+export type SplitLeg =
+	| { plId: PLAccountId; mode: "percent"; value: number }
+	| { plId: PLAccountId; mode: "fixed"; value: number }
+	| { plId: PLAccountId; mode: "remainder" };
+
+/**
+ * Split a single source account across multiple PL accounts. Used as an
+ * alternative to a plain `PLAccountId` in the `PLMappings` value union.
+ */
+export type SplitMapping = { splits: SplitLeg[] };
+
+/**
+ * `sourceAccountKey` → `plAccountId` (single target) **or** `SplitMapping`
+ * (split across multiple targets). One entry per mapped source row.
+ *
+ * Use `isSplitMapping` (in `~/lib/storage`) to discriminate the union.
+ */
+export type PLMappings = Record<SourceAccountKey, PLAccountId | SplitMapping>;
 
 /** Credential field id (e.g. `"accessToken"`) → user-entered value. */
 export type Credentials = Record<string, string>;

@@ -238,4 +238,54 @@ describe("SyncFooter", () => {
 		expect(screen.getByText("IRA")).toBeInTheDocument();
 		expect(screen.getByText(/401k: err/)).toBeInTheDocument();
 	});
+
+	it("disables the sync button when hasInvalidSplit is true", () => {
+		render(
+			<SyncFooter
+				mappedCount={2}
+				totalCount={2}
+				plAccountsLoaded={true}
+				hasInvalidSplit={true}
+				plSync={{ status: "idle" }}
+				onSync={vi.fn()}
+			/>,
+		);
+		expect(
+			screen.getByRole("button", { name: /sync to projectionlab/i }),
+		).toBeDisabled();
+	});
+
+	it("shows a 'Fix split allocation' hint when hasInvalidSplit is true", () => {
+		render(
+			<SyncFooter
+				mappedCount={2}
+				totalCount={2}
+				plAccountsLoaded={true}
+				hasInvalidSplit={true}
+				plSync={{ status: "idle" }}
+				onSync={vi.fn()}
+			/>,
+		);
+		expect(
+			screen.getByText(/Fix split allocation to enable sync/i),
+		).toBeInTheDocument();
+	});
+
+	it("does not call onSync when clicked while a split is invalid", () => {
+		const onSync = vi.fn();
+		render(
+			<SyncFooter
+				mappedCount={2}
+				totalCount={2}
+				plAccountsLoaded={true}
+				hasInvalidSplit={true}
+				plSync={{ status: "idle" }}
+				onSync={onSync}
+			/>,
+		);
+		fireEvent.click(
+			screen.getByRole("button", { name: /sync to projectionlab/i }),
+		);
+		expect(onSync).not.toHaveBeenCalled();
+	});
 });
