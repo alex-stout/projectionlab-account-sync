@@ -27,7 +27,7 @@ export async function getPlTab() {
 
 export async function getSourceTab(sourceId: string) {
 	const plugin = PLUGINS.find((p) => p.id === sourceId);
-	if (!plugin || plugin.kind !== "content") return null;
+	if (plugin?.kind !== "content") return null;
 	for (const pattern of plugin.urlPatterns) {
 		const tabs = await browser.tabs.query({ url: pattern });
 		if (tabs.length > 0) return tabs[0];

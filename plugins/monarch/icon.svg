@@ -1,4 +1,5 @@
 <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <title>Monarch logo</title>
   <rect width="24" height="24" rx="5" fill="#0e3b2f"/>
   <text x="12" y="17" text-anchor="middle" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="15" font-weight="600" fill="#ffffff">M</text>
 </svg>
